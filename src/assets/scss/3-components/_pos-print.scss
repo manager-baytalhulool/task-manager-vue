@@ -1,0 +1,9 @@
+.pos-print {
+  width: 3in;
+  font-size: 12px;
+  font-family: monospace;
+  height: auto;
+  .table > :not(caption) > * > * {
+    padding: 0.25rem 0.25rem;
+  }
+}

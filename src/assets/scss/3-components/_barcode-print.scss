@@ -1,0 +1,29 @@
+.barcode-print {
+  width: 4in;
+  height: 1in;
+  font-family: monospace;
+
+  @media print {
+    @page {
+      size: 4in 1in;
+      margin: 0 auto 0 auto;
+      // padding: ;
+    }
+  }
+
+  body {
+    width: 4in;
+  }
+
+  svg {
+    max-width: 100%;
+  }
+
+  .barcode-container {
+    overflow: hidden;
+  }
+
+  .barcode-container img {
+    max-width: 100%;
+  }
+}
