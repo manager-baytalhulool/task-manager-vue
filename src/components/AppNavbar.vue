@@ -6,7 +6,7 @@ import { useRouter } from 'vue-router'
 // import LoaderLayout from "@/layouts/LoaderLayout.vue";
 import { useAppStore } from '@/stores/appStore'
 import { useAuthStore } from '@/stores/authStore'
-import axios from 'axios'
+import api from '@/plugins/axios'
 
 const appStore = useAppStore()
 const authStore = useAuthStore()
@@ -17,7 +17,7 @@ const user = authStore.user
 const handleLogout = async () => {
   appStore.setAppLoading(true)
   try {
-    await axios.post('/api/auth/logout')
+    await api.post('/api/auth/logout')
     await authStore.logout()
     await router.push('/auth/login')
   } finally {

@@ -6,4 +6,5 @@ export interface TaskIndex {
   description: string
   status: TaskStatusEnum
   assignee: BaseEntity
+  assignee_id: number
 }

@@ -1,5 +1,6 @@
 <script setup lang="ts">
-// import { Modal } from "bootstrap";
+import { Modal } from 'bootstrap'
+import ModalTaskForm from '@/components/tasks/ModalTaskForm.vue'
 import { onMounted, ref } from 'vue'
 // import { RouterLink } from 'vue-router'
 
@@ -8,6 +9,9 @@ import type { TaskIndex } from '@/types/Task'
 // import { useDataTable } from '@/composables/useDataTable'
 
 const tasks = ref<TaskIndex[]>([])
+let modalTaskForm: Modal = null
+
+let selectedTask = ref(null);
 
 // let selectedSeasonalPlanId: any = null;
 
@@ -39,6 +43,16 @@ const handleDeleteClick = (task: TaskIndex, index: number) => {
   //   modalDelete.show();
 }
 
+const handleAddNewClick = () => {
+  selectedTask.value = null
+  modalTaskForm.show()
+}
+
+const handleEditClick = (task) => {
+  selectedTask.value = task
+  modalTaskForm.show()
+}
+
 // const { pagination, handlePageChange, handleSearchChange } = useDataTable({
 //   fetchFunction: getTasks,
 // })
@@ -46,6 +60,7 @@ const handleDeleteClick = (task: TaskIndex, index: number) => {
 onMounted(async () => {
   await getTasks()
   // modalDelete = new Modal(document.getElementById("modal-delete"), {});
+  modalTaskForm = new Modal(document.getElementById('taskFormModal'))
 })
 </script>
 
@@ -57,7 +72,7 @@ onMounted(async () => {
       <div class="row">
         <div class="col-12">
           <div class="mb-3 text-end">
-            <button class="btn btn-primary ms-1">Add new</button>
+            <button class="btn btn-primary ms-1" @click="handleAddNewClick">Add new</button>
             <!-- <RouterLink to="/tasks/create">
             </RouterLink> -->
           </div>
@@ -96,6 +111,9 @@ onMounted(async () => {
                           <button class="btn btn-info btn-sm">Start</button>
                           <button class="btn btn-warning btn-sm">Stop</button>
                           <button class="btn btn-info btn-sm">Complete</button>
+                          <button @click="handleEditClick(task)" class="btn btn-info btn-sm">
+                            Edit
+                          </button>
                           <button
                             class="btn btn-danger btn-sm"
                             @click="handleDeleteClick(task, index)"
@@ -114,5 +132,6 @@ onMounted(async () => {
       </div>
     </div>
     <!-- <AppModalDelete @onSubmit="handleDelete" :message="warningMessage" /> -->
+    <ModalTaskForm :selectedTask = "selectedTask" />
   </main>
 </template>
