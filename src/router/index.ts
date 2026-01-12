@@ -14,6 +14,8 @@ import LoginView from '@/views/auth/LoginView.vue'
 /* views */
 import HomeView from '@/views/HomeView.vue'
 import TasksView from '@/views/tasks/TasksView.vue'
+import UsersView from '@/views/users/UsersView.vue'
+import UserFormView from '@/views/users/UserFormView.vue'
 
 let isInitiated: boolean = false
 
@@ -75,11 +77,7 @@ const router = createRouter({
               name: 'tasks.index',
               component: TasksView,
             },
-            // {
-            //   path: 'create',
-            //   name: 'tasks.create',
-            //   component: ProductFormView
-            // },
+
             // {
             //   path: ':id',
             //   name: 'tasks.show',
@@ -95,6 +93,21 @@ const router = createRouter({
             //   name: 'products.barcode',
             //   component: ProductBarcodeView
             // }
+          ],
+        },
+        {
+          path: 'users',
+          children: [
+            {
+              path: '',
+              name: 'users.index',
+              component: UsersView,
+            },
+            {
+              path: 'create',
+              name: 'tasks.create',
+              component: UserFormView
+            },
           ],
         },
       ],

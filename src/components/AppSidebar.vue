@@ -53,6 +53,7 @@ const appName = import.meta.env.VITE_APP_NAME
         </li> -->
 
         <AppSidebarItem icon="database" text="Tasks" url="/tasks" />
+        <AppSidebarItem icon="users" text="Users" url="/users" />
       </ul>
     </div>
   </nav>
