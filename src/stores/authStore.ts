@@ -20,7 +20,7 @@ export const useAuthStore = defineStore('authStore', () => {
       api.defaults.headers.common['Authorization'] = `Bearer ${localToken}`
       const response = await api.get(`/api/users/me`)
       token.value = localToken
-      user.value = response.data
+      user.value = response.data.data.user
     } catch (error) {
       console.log(error)
       logout()

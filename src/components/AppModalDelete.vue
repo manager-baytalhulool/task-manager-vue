@@ -1,5 +1,13 @@
 <script setup lang="ts">
+
+const props = defineProps<{
+  message: string,
+}>()
+
+
 defineEmits(['onSubmit'])
+
+
 </script>
 
 <template>

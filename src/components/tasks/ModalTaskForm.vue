@@ -19,12 +19,21 @@ async function handleSubmit(params: type) {
   let selectedUserId = null
   selectedUserId = selectedUser.value ? selectedUser.value.id : null
 
-  const response = await api.post('/api/tasks', {
-    description: description.value,
-    assignee_id: selectedUserId,
-  })
-}
+  let response = null;
+  if (selectedTask.value) {
+    response = await api.put(`api/tasks/${selectedTask.value.id}`, {
+      description: description.value,
+      assignee_id: selectedUserId,
+    })
+  } else {
+    response = await api.post('/api/tasks', {
+      description: description.value,
+      assignee_id: selectedUserId,
+    })
+  }
 
+  emits('taskCreated', response.data.data.task)
+}
 
 onMounted(() => {
   fetchUsers()
@@ -34,20 +43,25 @@ const props = defineProps<{
   selectedTask: TaskIndex | null
 }>()
 
-const {selectedTask} = toRefs(props);
+const emits = defineEmits<{
+  (e: 'taskCreated', task: TaskIndex): void
+}>()
+
+const { selectedTask } = toRefs(props)
 
 function setForm() {
   if (props.selectedTask) {
-    description.value = props.selectedTask.description;
-    selectedUser.value = props.selectedTask.assignee_id;
+    description.value = props.selectedTask.description
+    selectedUser.value = props.selectedTask.assignee
+  } else {
+    description.value = ''
+    selectedUser.value = null
   }
 }
 
 watch(selectedTask, async () => {
-setForm();
-
+  setForm()
 })
-
 </script>
 
 <template>
@@ -62,8 +76,9 @@ setForm();
       <div class="modal-content">
         <form v-on:submit.prevent="handleSubmit">
           <div class="modal-header">
-
-            <h1 class="modal-title fs-5" id="taskFormModalLabel">{{ selectedTask ? 'Edit' : 'Create'}} Task</h1>
+            <h1 class="modal-title fs-5" id="taskFormModalLabel">
+              {{ selectedTask ? 'Edit' : 'Create' }} Task
+            </h1>
             <button
               type="button"
               class="btn-close"
