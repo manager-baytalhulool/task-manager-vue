@@ -83,11 +83,7 @@ const router = createRouter({
             //   name: 'tasks.show',
             //   component: ProductView
             // },
-            // {
-            //   path: ':id/edit',
-            //   name: 'products.edit',
-            //   component: ProductFormView
-            // },
+
             // {
             //   path: ':id/barcode',
             //   name: 'products.barcode',
@@ -105,7 +101,12 @@ const router = createRouter({
             },
             {
               path: 'create',
-              name: 'tasks.create',
+              name: 'users.create',
+              component: UserFormView
+            },
+            {
+              path: ':id/edit',
+              name: 'users.edit',
               component: UserFormView
             },
           ],

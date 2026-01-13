@@ -5,6 +5,7 @@ export interface TaskIndex {
   id: number
   description: string
   status: TaskStatusEnum
+  is_paid: boolean
   assignee: BaseEntity
   assignee_id: number
 }

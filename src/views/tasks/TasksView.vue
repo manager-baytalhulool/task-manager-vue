@@ -110,6 +110,7 @@ onMounted(async () => {
                       <th>Assignee</th>
                       <th>Task</th>
                       <th>Status</th>
+                      <th>Is Paid</th>
                       <th>Actions</th>
                     </tr>
                   </thead>
@@ -120,6 +121,7 @@ onMounted(async () => {
 
                       <td>{{ task.description }}</td>
                       <td>{{ task.status }}</td>
+                      <td>{{ task.is_paid }}</td>
                       <td class="text-nowrap">
                         <!-- <RouterLink :to="`/agreements/${index}`">
                           <button class="btn btn-primary btn-sm">View</button>

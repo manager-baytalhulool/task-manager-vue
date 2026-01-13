@@ -2,6 +2,7 @@
 import axios from 'axios'
 import { onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import api from '@/plugins/axios'
 
 import FormInput from '@/components/form/FormInput.vue'
 import FormSelect from '@/components/form/FormSelect.vue'
@@ -13,59 +14,75 @@ const router = useRouter()
 
 /* data */
 const isEditMode = id ? true : false
+const roles = ref<any[]>([])
+const selectedUser = ref<any>(null)
 
 const formBody = ref<any>({
   name: '',
   email: '',
-  quantity: 1,
-  price: '',
-  discounted_price: '',
-  size: '',
-  color: ''
+  password: '',
+  role_id: ''
 })
 
-const getProduct = async (id: any) => {
-  const response = await axios.get(`/api/products/${id}`)
-  const product = response.data
-  const obj = {
-    name: product.name,
-    category_id: product.category_id,
-    price: product.price,
-    discounted_price: product.discounted_price,
-    image: product.image,
-    size: product.size,
-    color: product.color,
-    quantity: product.quantity
-  }
-  formBody.value = obj
+
+
+const getRoles = async () => {
+  const response = await api.get('/api/roles')
+  roles.value = response.data.roles
+}
+
+const getUser = async () => {
+  const response = await api.get(`/api/users/${id}`)
+  selectedUser.value = response.data.data.user
+}
+
+const setForm = () => {
+
+    formBody.value.name = selectedUser.value.name;
+    formBody.value.email = selectedUser.value.email;
+    formBody.value.password = selectedUser.value.password;
+    formBody.value.role_id = selectedUser.value.role_id;
 }
 
 const handleSubmit = async () => {
-  try {
-    const response = await saveProduct(formBody.value)
-    alert(response.data.message)
-    router.push(`/products`)
-    // json.value = {
-    //   name: null,
-    //   category_id: 1,
-    // }
-  } catch (ex) {
-    console.log(ex)
+  let selectedUserId = null
+  selectedUserId = selectedUser.value ? selectedUser.value.id : null
+
+  let response = null;
+  if (isEditMode) {
+
+
+    response = await api.put(`api/users/${id}`, {
+      name: formBody.value.name,
+      email: formBody.value.email,
+      password: formBody.value.password,
+      role_id: formBody.value.role_id,
+    })
+  } else {
+    response = await api.post('/api/users', {
+      name: formBody.value.name,
+      email: formBody.value.email,
+      password: formBody.value.password,
+      role_id: formBody.value.role_id,
+    })
   }
+
+  alert(response.data.message);
+
+  router.push('/users')
+  // emits('userCreated', response.data.data.user)
+
 }
 
-const saveProduct = (data: any) => {
-  if (id) {
-    data['_method'] = 'PUT'
-    return axios.post(`/api/products/${id}`, data)
-  }
-  return axios.post(`/api/products`, data)
-}
 
-onMounted(() => {
-  if (id) {
-    getProduct(id)
+onMounted( async () => {
+
+  if(id) {
+    await getUser();
+    setForm();
   }
+  await getRoles()
+
 })
 </script>
 
@@ -91,11 +108,18 @@ onMounted(() => {
                   <div class="col-sm-6">
                     <FormInput name="email" label="Email" v-model="formBody.email" type="email" />
                   </div>
-
                   <div class="col-sm-6">
-                    <FormSelect name="role_id" label="Role" v-model="formBody.role_id" :items="[]"/>
+                    <FormInput name="password" label="Password" v-model="formBody.password" type="password" />
                   </div>
 
+                  <div class="col-sm-6">
+                    <FormSelect
+                      name="role_id"
+                      label="Role"
+                      v-model="formBody.role_id"
+                      :items="roles"
+                    />
+                  </div>
                 </div>
               </div>
               <div class="card-footer">

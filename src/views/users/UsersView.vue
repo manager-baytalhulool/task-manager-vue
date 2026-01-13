@@ -133,9 +133,13 @@ onMounted(async () => {
                           <button class="btn btn-info btn-sm">Start</button>
                           <button class="btn btn-warning btn-sm">Stop</button>
                           <button class="btn btn-info btn-sm">Complete</button>
-                          <button @click="handleEditClick(user)" class="btn btn-info btn-sm">
-                            Edit
-                          </button>
+
+                          <RouterLink :to="`/users/${user.id}/edit`">
+
+                            <button @click="handleEditClick(user)" class="btn btn-info btn-sm">
+                              Edit
+                            </button>
+                        </RouterLink>
                           <button
                             class="btn btn-danger btn-sm"
                             @click="handleDeleteClick(user, index)"
