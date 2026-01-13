@@ -1,8 +1,9 @@
-<script setup lang="ts">
+<script setup lang="ts" generic="Row extends { id: number }">
 import { ref, computed, useSlots, watch } from 'vue'
 import AppFeatherIcon from '@/components/AppFeatherIcon.vue'
 import { useDebounce } from '@/composables/useDebounce'
-import type { Column, RowClass } from '@/types/DataTable'
+import type { RowClass } from '@/types/DataTable'
+import type { IColumn, Pagination } from '@/types/Pagination'
 
 // type FormatterFn = (value: unknown) => unknown
 
@@ -39,16 +40,24 @@ import type { Column, RowClass } from '@/types/DataTable'
 //   },
 // )
 
-const props = defineProps<{
-  rows?: unknown[]
-  rowClass?: RowClass
-  columns: Column[]
-  loading?: boolean
-  showSearch?: boolean
-  pagination?: Pagination | null
-  serverSide?: boolean
-  columnEditable?: boolean
-}>()
+const props = withDefaults(
+  defineProps<{
+    // rows: Row[]
+    rowClass?: RowClass<Row>
+    columns: IColumn<Row>[]
+    loading?: boolean
+    showSearch?: boolean
+    pagination: Pagination<Row>
+    serverSide?: boolean
+    columnEditable?: boolean
+  }>(),
+  {
+    rowClass: () => () => ({}),
+    serverSide: true,
+    showSearch: true,
+    columnEditable: false,
+  },
+)
 
 const emit = defineEmits([
   'sort-change',
@@ -70,9 +79,9 @@ const processedColumns = computed(() => {
     field: col.field,
     label: col.label || col.field,
     sortable: col.sortable || false,
-    editable: col.editable || false,
-    formatter: col.formatter || null,
-    width: col.width || null,
+    // editable: col.editable || false,
+    // formatter: col.formatter || null,
+    // width: col.width || null,
   }))
 })
 
@@ -81,37 +90,40 @@ const processedRows = computed(() => {
     return props.pagination.data
   }
 
-  let filtered = [...props.rows]
+  /* code for without server-side processing */
+  // let filtered = [...props.rows]
 
   // Local search
-  if (searchQuery.value) {
-    const query = searchQuery.value.toLowerCase()
-    filtered = filtered.filter((row) => {
-      return props.columns.some((column) => {
-        const value = row[column.field]
-        return value && value.toString().toLowerCase().includes(query)
-      })
-    })
-  }
+  // if (searchQuery.value) {
+  //   const query = searchQuery.value.toLowerCase()
+  //   filtered = filtered.filter((row) => {
+  //     return props.columns.some((column) => {
+  //       const value = row[column.field]
+  //       return value && value.toString().toLowerCase().includes(query)
+  //     })
+  //   })
+  // }
 
   // Local sorting
-  if (sortField.value) {
-    filtered.sort((a, b) => {
-      let aVal = a[sortField.value]
-      let bVal = b[sortField.value]
+  // if (sortField.value) {
+  //   filtered.sort((a, b) => {
+  //     let aVal = a[sortField.value]
+  //     let bVal = b[sortField.value]
 
-      if (typeof aVal === 'string') {
-        aVal = aVal.toLowerCase()
-        bVal = bVal.toLowerCase()
-      }
+  //     if (typeof aVal === 'string') {
+  //       aVal = aVal.toLowerCase()
+  //       bVal = bVal.toLowerCase()
+  //     }
 
-      if (aVal < bVal) return sortDirection.value === 'asc' ? -1 : 1
-      if (aVal > bVal) return sortDirection.value === 'asc' ? 1 : -1
-      return 0
-    })
-  }
+  //     if (aVal < bVal) return sortDirection.value === 'asc' ? -1 : 1
+  //     if (aVal > bVal) return sortDirection.value === 'asc' ? 1 : -1
+  //     return 0
+  //   })
+  // }
 
-  return filtered
+  // return filtered
+
+  return props.pagination.data
 })
 
 const hasActions = computed(() => {
@@ -168,7 +180,7 @@ const clearSearch = () => {
   }, 0)
 }
 
-const sortColumn = (field) => {
+const sortColumn = (field: string) => {
   if (!props.columns.find((col) => col.field === field && col.sortable)) {
     return
   }
@@ -194,14 +206,16 @@ const getSortIcon = () => {
   return sortDirection.value === 'asc' ? 'chevron-up' : 'chevron-down'
 }
 
-const formatValue = (value, column) => {
-  if (column.formatter && typeof column.formatter === 'function') {
-    return column.formatter(value)
-  }
+const formatValue = (value: unknown) => {
+  // , column: Column
+  // if (column.formatter && typeof column.formatter === 'function') {
+  //   return column.formatter(value)
+  // }
   return value
 }
 
-const changePage = (page) => {
+const changePage = (page: number | string) => {
+  if (typeof page === 'string') return
   if (!props.pagination || page < 1 || page > props.pagination.lastPage) return
   emit('page-change', page)
 }
@@ -273,7 +287,7 @@ watch(debouncedSearch, (newValue) => {
                 <span>{{ column.label }}</span>
                 <span
                   v-if="column.sortable"
-                  @click="sortColumn(column.field)"
+                  @click="sortColumn(column.field as string)"
                   class="cursor-pointer sort-btn mx-1"
                 >
                   <AppFeatherIcon v-if="sortField !== column.field" :icon="getSortIcon()" />
@@ -296,14 +310,24 @@ watch(debouncedSearch, (newValue) => {
             :class="[{ 'even-row': index % 2 === 0 }, rowClass(row, index)]"
           >
             <td v-for="column in processedColumns" :key="column.field">
+              <template v-if="column.field != 'actions'">
+                <slot
+                  :name="`cell-${column.field as string}`"
+                  :row="row"
+                  :value="row[column.field]"
+                  :rowIndex="index"
+                >
+                  <!-- , column -->
+                  {{ formatValue(row[column.field]) }}
+                </slot>
+              </template>
               <slot
-                :name="`cell-${column.field}`"
+                v-else
+                :name="`cell-actions`"
                 :row="row"
-                :value="row[column.field]"
+                :value="'actions'"
                 :rowIndex="index"
-              >
-                {{ formatValue(row[column.field], column) }}
-              </slot>
+              ></slot>
             </td>
           </tr>
         </tbody>
@@ -326,7 +350,7 @@ watch(debouncedSearch, (newValue) => {
               class="page-link"
               href="#"
               @click.prevent="changePage(pagination.currentPage - 1)"
-              :disabled="!pagination.prevPageUrl"
+              :disabled="!(pagination.currentPage == 1)"
               >Previous</a
             >
           </li>
@@ -346,7 +370,7 @@ watch(debouncedSearch, (newValue) => {
               class="page-link"
               href="#"
               @click="changePage(pagination.currentPage + 1)"
-              :disabled="!pagination.nextPageUrl"
+              :disabled="!(pagination.currentPage < pagination.lastPage)"
               >Next</a
             >
           </li>

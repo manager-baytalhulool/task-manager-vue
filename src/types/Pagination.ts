@@ -23,3 +23,9 @@ export interface PaginationResponse<T> {
   total: number
   last_page: number
 }
+
+export type IColumn<Row> = {
+  label: string
+  field: keyof Row | 'actions'
+  sortable?: boolean
+}

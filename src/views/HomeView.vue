@@ -1,22 +1,21 @@
 <script setup lang="ts">
-import axios from 'axios'
 import { onMounted, ref } from 'vue'
 import { useAuthStore } from '@/stores/authStore'
 
 const authStore = useAuthStore()
-const authUser = authStore.user
+const authUser = authStore.user!
 
 const isViewReady = ref<boolean>(false)
-const tasks = ref<any>([])
+// const tasks = ref<any>([])
 
-const getTasks = async () => {
-  const url = `/api/tasks`
-  const response = await axios.get(url)
-  tasks.value = response.data.data
-}
+// const getTasks = async () => {
+//   const url = `/api/tasks`
+//   const response = await axios.get(url)
+//   tasks.value = response.data.data
+// }
 
 onMounted(async () => {
-  await getTasks()
+  // await getTasks()
   isViewReady.value = true
 })
 </script>
@@ -28,7 +27,7 @@ onMounted(async () => {
         <strong>{{ authUser.name }}</strong>
       </h1>
 
-      <div class="row">
+      <!-- <div class="row">
         <div class="col-12 col-md-4 col-xxl-3 d-flex" v-for="task in tasks" :key="task.id">
           <div class="card flex-fill w-100">
             <div class="card-header">
@@ -48,7 +47,7 @@ onMounted(async () => {
             </div>
           </div>
         </div>
-      </div>
+      </div> -->
     </div>
   </main>
 </template>
