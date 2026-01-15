@@ -11,7 +11,6 @@ import type { UserIndex } from '@/types/User'
 import { useDataTable } from '@/composables/useDataTable'
 import { useRouter } from 'vue-router'
 import type { IColumn, PaginationParams } from '@/types/Pagination'
-import type { TaskIndex } from '@/types/Task'
 // import { useDataTable } from '@/composables/useDataTable'
 
 const users = ref<UserIndex[]>([])
@@ -79,25 +78,17 @@ const handleEditClick = (user: UserIndex) => {
   // modalUserForm.show()
 }
 
-const handleUserCreated = (user: UserIndex) => {
-  console.log('user created')
-  if (selectedUser.value) {
-    const selectedUserIndex = users.value.findIndex((t) => t.id == selectedUser.value!.id)
-    users.value[selectedUserIndex] = user
-  } else {
-    users.value.push(user)
-  }
-
-  // modalUserForm.hide()
-}
 
 const { pagination, handlePageChange, handleSearchChange } = useDataTable<UserIndex>({
   fetchFunction: getUsers,
 })
 
 onMounted(async () => {
-  await getUsers()
-  modalDelete = new Modal(document.getElementById('modal-delete'), {})
+  const modal = document.getElementById('modal-delete')
+  if (modal) {
+
+    modalDelete = new Modal(modal, {})
+  }
   // modalUserForm = new Modal(document.getElementById('userFormModal'))
 })
 </script>
@@ -177,7 +168,7 @@ onMounted(async () => {
                     <button class="btn btn-warning btn-sm">Stop</button>
                     <button class="btn btn-info btn-sm">Complete</button>
                     <button @click="handleEditClick(task)" class="btn btn-info btn-sm">Edit</button>
-                    <button class="btn btn-danger btn-sm" @click="handleDeleteClick(user, index)">
+                    <button class="btn btn-danger btn-sm" @click="handleDeleteClick(task, index)">
                       Delete
                     </button>
                   </div>
