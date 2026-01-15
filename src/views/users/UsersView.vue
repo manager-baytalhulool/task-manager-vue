@@ -3,71 +3,87 @@ import { Modal } from 'bootstrap'
 // import ModalUserForm from '@/components/users/ModalUserForm.vue'
 import AppModalDelete from '@/components/AppModalDelete.vue'
 import { onMounted, ref } from 'vue'
+import AppDataTable from '@/components/AppDataTable.vue'
 // import { RouterLink } from 'vue-router'
 
 import api from '@/plugins/axios'
 import type { UserIndex } from '@/types/User'
+import { useDataTable } from '@/composables/useDataTable'
+import { useRouter } from 'vue-router'
+import type { IColumn, PaginationParams } from '@/types/Pagination'
+import type { TaskIndex } from '@/types/Task'
 // import { useDataTable } from '@/composables/useDataTable'
 
 const users = ref<UserIndex[]>([])
+const router = useRouter()
 // let modalUserForm: Modal | null = null
 
 let modalDelete: Modal | null = null
 
-const warningMessage= ref<string>("")
+const warningMessage = ref<string>('')
 
 const selectedUser = ref<UserIndex | null>(null)
 
+const columns: IColumn<UserIndex>[] = [
+  { label: 'ID', field: 'id', sortable: true },
+  { label: 'Name', field: 'name', sortable: true },
+  { label: 'Email', field: 'email', sortable: true },
+  { label: 'Role', field: 'role_id', sortable: true },
+  { label: 'Actions', field: 'actions' },
+]
+
 // let selectedSeasonalPlanId: any = null;
 
-const getUsers = async () => {
+const getUsers = async (params: PaginationParams) => {
   const url = `/api/users`
-  const response = await api.get(url)
+  const response = await api.get(url, { params: params })
   // return response.data.data.users
   users.value = response.data.data.users.data
+
+  return response.data.data.users
 }
 
 const handleDelete = async () => {
-//   const url = `https://first-touch-dev-default-rtdb.europe-west1.firebasedatabase.app/Seasonal_Plans/${selectedSeasonalPlanId}.json`;
+  //   const url = `https://first-touch-dev-default-rtdb.europe-west1.firebasedatabase.app/Seasonal_Plans/${selectedSeasonalPlanId}.json`;
   try {
-    await api.delete(`api/users/${selectedUser.value!.id}`, {});
-    const selectedUserIndex = users.value.findIndex((u)=> u.id == selectedUser.value!.id)
+    await api.delete(`api/users/${selectedUser.value!.id}`, {})
+    const selectedUserIndex = users.value.findIndex((u) => u.id == selectedUser.value!.id)
     users.value.splice(selectedUserIndex, 1)
 
-//     delete seasonalPlans.value[selectedSeasonalPlanId];
+    //     delete seasonalPlans.value[selectedSeasonalPlanId];
   } catch (ex) {
-    console.log(ex);
-    alert("something went wrong");
+    console.log(ex)
+    alert('something went wrong')
   }
 
-  modalDelete.hide();
-};
+  modalDelete!.hide()
+}
 
 const handleDeleteClick = (user: UserIndex, index: number) => {
   console.log(user, index)
   selectedUser.value = user
   //   selectedSeasonalPlanId = id;
-    warningMessage.value = `Are you sure want to delete this user <strong>${selectedUser.value!.id}</strong>`;
-    modalDelete!.show();
+  warningMessage.value = `Are you sure want to delete this user <strong>${selectedUser.value!.id}</strong>`
+  modalDelete!.show()
 }
 
 // const handleAddNewClick = () => {
-
 
 //   selectedUser.value = null
 //   modalUserForm.show()
 // }
 
-const handleEditClick = (user) => {
+const handleEditClick = (user: UserIndex) => {
   selectedUser.value = user
+  router.push(`/users/${user.id}/edit`)
   // modalUserForm.show()
 }
 
 const handleUserCreated = (user: UserIndex) => {
   console.log('user created')
   if (selectedUser.value) {
-    const selectedUserIndex = users.value.findIndex((t)=> t.id == selectedUser.value!.id)
-    users.value[selectedUserIndex] = user;
+    const selectedUserIndex = users.value.findIndex((t) => t.id == selectedUser.value!.id)
+    users.value[selectedUserIndex] = user
   } else {
     users.value.push(user)
   }
@@ -75,13 +91,13 @@ const handleUserCreated = (user: UserIndex) => {
   // modalUserForm.hide()
 }
 
-// const { pagination, handlePageChange, handleSearchChange } = useDataTable({
-//   fetchFunction: getUsers,
-// })
+const { pagination, handlePageChange, handleSearchChange } = useDataTable<UserIndex>({
+  fetchFunction: getUsers,
+})
 
 onMounted(async () => {
   await getUsers()
-  modalDelete = new Modal(document.getElementById("modal-delete"), {});
+  modalDelete = new Modal(document.getElementById('modal-delete'), {})
   // modalUserForm = new Modal(document.getElementById('userFormModal'))
 })
 </script>
@@ -104,7 +120,7 @@ onMounted(async () => {
               <h5 class="card-title mb-0">Manage Users</h5>
             </div>
             <div class="card-body">
-              <div class="table-responsive">
+              <!-- <div class="table-responsive">
                 <table class="table table-bordered table-hover">
                   <thead>
                     <tr>
@@ -123,23 +139,16 @@ onMounted(async () => {
                       <td>{{ user.name }}</td>
                       <td>{{ user.email }}</td>
                       <td class="text-nowrap">
-                        <!-- <RouterLink :to="`/agreements/${index}`">
-                          <button class="btn btn-primary btn-sm">View</button>
-                        </RouterLink>
-                        <RouterLink :to="`/agreements/${index}/print`">
-
-                        </RouterLink> -->
                         <div class="d-flex gap-1">
                           <button class="btn btn-info btn-sm">Start</button>
                           <button class="btn btn-warning btn-sm">Stop</button>
                           <button class="btn btn-info btn-sm">Complete</button>
 
                           <RouterLink :to="`/users/${user.id}/edit`">
-
                             <button @click="handleEditClick(user)" class="btn btn-info btn-sm">
                               Edit
                             </button>
-                        </RouterLink>
+                          </RouterLink>
                           <button
                             class="btn btn-danger btn-sm"
                             @click="handleDeleteClick(user, index)"
@@ -151,7 +160,29 @@ onMounted(async () => {
                     </tr>
                   </tbody>
                 </table>
-              </div>
+              </div> -->
+
+              <AppDataTable
+                :pagination="pagination"
+                :columns="columns"
+                @page-change="handlePageChange"
+                @search-change="handleSearchChange"
+              >
+                <template #cell-name="{ row: user }">
+                  {{ user.name }}
+                </template>
+                <template #cell-actions="{ row: task, rowIndex: index }">
+                  <div class="d-flex gap-1">
+                    <button class="btn btn-info btn-sm">Start</button>
+                    <button class="btn btn-warning btn-sm">Stop</button>
+                    <button class="btn btn-info btn-sm">Complete</button>
+                    <button @click="handleEditClick(task)" class="btn btn-info btn-sm">Edit</button>
+                    <button class="btn btn-danger btn-sm" @click="handleDeleteClick(user, index)">
+                      Delete
+                    </button>
+                  </div>
+                </template>
+              </AppDataTable>
             </div>
           </div>
         </div>
@@ -161,3 +192,10 @@ onMounted(async () => {
     <!-- <ModalUserForm :selectedUser="selectedUser" @userCreated="handleUserCreated" /> -->
   </main>
 </template>
+
+<!-- <RouterLink :to="`/agreements/${index}`">
+                          <button class="btn btn-primary btn-sm">View</button>
+                        </RouterLink>
+                        <RouterLink :to="`/agreements/${index}/print`">
+
+                        </RouterLink> -->
