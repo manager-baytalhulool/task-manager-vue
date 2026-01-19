@@ -10,6 +10,7 @@ import type { TaskIndex } from '@/types/Task'
 import AppDataTable from '@/components/AppDataTable.vue'
 import { useDataTable } from '@/composables/useDataTable'
 import type { IColumn, PaginationParams } from '@/types/Pagination'
+import { TaskStatusEnum } from '@/enums/TaskStatusEnum'
 // import { useDataTable } from '@/composables/useDataTable'
 
 const tasks = ref<TaskIndex[]>([])
@@ -29,6 +30,12 @@ const columns: IColumn<TaskIndex>[] = [
   { label: 'Status', field: 'status', sortable: true },
   { label: 'Actions', field: 'actions' },
 ]
+
+const taskStatusActionsEnum: Record<string, string> = {
+  start: 'InProgress',
+  hold: 'OnHold',
+  complete: 'Completed',
+}
 
 const getTasks = async (params: PaginationParams) => {
   const url = `/api/tasks`
@@ -83,6 +90,31 @@ const handleTaskCreated = (task: TaskIndex) => {
   modalTaskForm!.hide()
 }
 
+const handleTaskStatusChange = async (task: TaskIndex, action: string) => {
+  try {
+    await api.put(`api/tasks/${task.id}`, {
+      status:
+        action === taskStatusActionsEnum.start
+          ? TaskStatusEnum.InProgress
+          : action === taskStatusActionsEnum.hold
+            ? TaskStatusEnum.OnHold
+            : TaskStatusEnum.Completed,
+    })
+  } catch (ex) {
+    console.log(ex)
+    alert('something went wrong')
+    return
+  }
+  selectedTask.value = task
+  if (action === taskStatusActionsEnum.start) {
+    selectedTask.value.status = TaskStatusEnum.InProgress
+  } else if (action === taskStatusActionsEnum.hold) {
+    selectedTask.value.status = TaskStatusEnum.OnHold
+  } else if (action === taskStatusActionsEnum.complete) {
+    selectedTask.value.status = TaskStatusEnum.Completed
+  }
+}
+
 const { pagination, handlePageChange, handleSearchChange } = useDataTable<TaskIndex>({
   fetchFunction: getTasks,
 })
@@ -122,11 +154,31 @@ onMounted(async () => {
                 <template #cell-assignee_id="{ row: task }">
                   {{ task.assignee.name }}
                 </template>
+                <template #cell-description="{ row: task }">
+                  <RouterLink :to="`/tasks/${task.id}`" target="_blank">
+                    {{ task.description }}</RouterLink
+                  >
+                </template>
                 <template #cell-actions="{ row: task, rowIndex: index }">
                   <div class="d-flex gap-1">
-                    <button class="btn btn-info btn-sm">Start</button>
-                    <button class="btn btn-warning btn-sm">Stop</button>
-                    <button class="btn btn-info btn-sm">Complete</button>
+                    <button
+                      class="btn btn-info btn-sm"
+                      @click="handleTaskStatusChange(task, taskStatusActionsEnum.start!)"
+                    >
+                      Start
+                    </button>
+                    <button
+                      class="btn btn-warning btn-sm"
+                      @click="handleTaskStatusChange(task, taskStatusActionsEnum.hold!)"
+                    >
+                      Hold
+                    </button>
+                    <button
+                      class="btn btn-info btn-sm"
+                      @click="handleTaskStatusChange(task, taskStatusActionsEnum.complete!)"
+                    >
+                      Complete
+                    </button>
                     <button @click="handleEditClick(task)" class="btn btn-info btn-sm">Edit</button>
                     <button class="btn btn-danger btn-sm" @click="handleDeleteClick(task, index)">
                       Delete
