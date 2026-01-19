@@ -78,7 +78,6 @@ const handleEditClick = (user: UserIndex) => {
   // modalUserForm.show()
 }
 
-
 const { pagination, handlePageChange, handleSearchChange } = useDataTable<UserIndex>({
   fetchFunction: getUsers,
 })
@@ -86,7 +85,6 @@ const { pagination, handlePageChange, handleSearchChange } = useDataTable<UserIn
 onMounted(async () => {
   const modal = document.getElementById('modal-delete')
   if (modal) {
-
     modalDelete = new Modal(modal, {})
   }
   // modalUserForm = new Modal(document.getElementById('userFormModal'))
@@ -154,8 +152,8 @@ onMounted(async () => {
               </div> -->
 
               <AppDataTable
-                :pagination="pagination"
                 :columns="columns"
+                :pagination="pagination"
                 @page-change="handlePageChange"
                 @search-change="handleSearchChange"
               >
@@ -182,11 +180,10 @@ onMounted(async () => {
     <AppModalDelete @onSubmit="handleDelete" :message="warningMessage" />
     <!-- <ModalUserForm :selectedUser="selectedUser" @userCreated="handleUserCreated" /> -->
   </main>
-</template>
-
-<!-- <RouterLink :to="`/agreements/${index}`">
+  <!-- <RouterLink :to="`/agreements/${index}`">
                           <button class="btn btn-primary btn-sm">View</button>
                         </RouterLink>
                         <RouterLink :to="`/agreements/${index}/print`">
 
                         </RouterLink> -->
+</template>

@@ -3,9 +3,10 @@ import vSelect from 'vue-select'
 import { onMounted, ref, toRefs, watch } from 'vue'
 import api from '@/plugins/axios'
 import type { TaskIndex } from '@/types/Task'
+import type { BaseEntity } from '@/types/BaseEntity'
 
 const users = ref([])
-const selectedUser = ref<any>(null)
+const selectedUser = ref<BaseEntity | null>(null)
 const description = ref('')
 
 async function fetchUsers() {
@@ -15,24 +16,25 @@ async function fetchUsers() {
   users.value = res.data.data.users
 }
 
-async function handleSubmit(params: type) {
+async function handleSubmit() {
   let selectedUserId = null
   selectedUserId = selectedUser.value ? selectedUser.value.id : null
 
-  let response = null;
-  if (selectedTask.value) {
-    response = await api.put(`api/tasks/${selectedTask.value.id}`, {
-      description: description.value,
-      assignee_id: selectedUserId,
-    })
-  } else {
-    response = await api.post('/api/tasks', {
-      description: description.value,
-      assignee_id: selectedUserId,
-    })
-  }
-
-  emits('taskCreated', response.data.data.task)
+  let response = null
+  try {
+    if (selectedTask.value) {
+      response = await api.put(`api/tasks/${selectedTask.value.id}`, {
+        description: description.value,
+        assignee_id: selectedUserId,
+      })
+    } else {
+      response = await api.post('/api/tasks', {
+        description: description.value,
+        assignee_id: selectedUserId,
+      })
+    }
+    emits('taskCreated', response.data.data.task)
+  } catch {}
 }
 
 onMounted(() => {

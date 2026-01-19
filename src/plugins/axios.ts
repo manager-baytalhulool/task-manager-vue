@@ -1,3 +1,4 @@
+import { logError } from '@/utils/logger'
 import axios from 'axios'
 
 const baseURL = import.meta.env.VITE_BACKEND_URL || 'http://127.0.0.1:8000'
@@ -29,6 +30,8 @@ api.interceptors.response.use(
     return response
   },
   (error) => {
+    logError('API Error', error)
+
     // Any status codes that falls outside the range of 2xx cause this function to trigger
     const expectedError =
       error.response && error.response.status >= 400 && error.response.status < 500

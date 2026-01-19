@@ -12,7 +12,7 @@ const appStore = useAppStore()
 const authStore = useAuthStore()
 const router = useRouter()
 
-const user = authStore.user
+const user = authStore.user!
 
 const handleLogout = async () => {
   appStore.setAppLoading(true)

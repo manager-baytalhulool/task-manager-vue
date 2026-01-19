@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import axios from 'axios'
 import { onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import api from '@/plugins/axios'
 
 import FormInput from '@/components/form/FormInput.vue'
+import type { BaseEntity } from '@/types/BaseEntity'
+import type { UserForm } from '@/types/User'
 import FormSelect from '@/components/form/FormSelect.vue'
 
 const route = useRoute()
@@ -14,21 +15,19 @@ const router = useRouter()
 
 /* data */
 const isEditMode = id ? true : false
-const roles = ref<any[]>([])
-const selectedUser = ref<any>(null)
+const roles = ref<BaseEntity[]>([])
+const selectedUser = ref<UserForm | null>(null)
 
-const formBody = ref<any>({
+const formBody = ref<UserForm>({
   name: '',
   email: '',
   password: '',
-  role_id: ''
+  role_id: null,
 })
-
-
 
 const getRoles = async () => {
   const response = await api.get('/api/roles')
-  roles.value = response.data.roles
+  roles.value = response.data.data.roles
 }
 
 const getUser = async () => {
@@ -37,21 +36,15 @@ const getUser = async () => {
 }
 
 const setForm = () => {
-
-    formBody.value.name = selectedUser.value.name;
-    formBody.value.email = selectedUser.value.email;
-    formBody.value.password = selectedUser.value.password;
-    formBody.value.role_id = selectedUser.value.role_id;
+  formBody.value.name = selectedUser.value!.name
+  formBody.value.email = selectedUser.value!.email
+  formBody.value.password = selectedUser.value!.password
+  formBody.value.role_id = selectedUser.value!.role_id
 }
 
 const handleSubmit = async () => {
-  let selectedUserId = null
-  selectedUserId = selectedUser.value ? selectedUser.value.id : null
-
-  let response = null;
+  let response = null
   if (isEditMode) {
-
-
     response = await api.put(`api/users/${id}`, {
       name: formBody.value.name,
       email: formBody.value.email,
@@ -67,22 +60,18 @@ const handleSubmit = async () => {
     })
   }
 
-  alert(response.data.message);
+  alert(response.data.message)
 
   router.push('/users')
   // emits('userCreated', response.data.data.user)
-
 }
 
-
-onMounted( async () => {
-
-  if(id) {
-    await getUser();
-    setForm();
+onMounted(async () => {
+  if (id) {
+    await getUser()
+    setForm()
   }
   await getRoles()
-
 })
 </script>
 
@@ -109,9 +98,13 @@ onMounted( async () => {
                     <FormInput name="email" label="Email" v-model="formBody.email" type="email" />
                   </div>
                   <div class="col-sm-6">
-                    <FormInput name="password" label="Password" v-model="formBody.password" type="password" />
+                    <FormInput
+                      name="password"
+                      label="Password"
+                      v-model="formBody.password"
+                      type="password"
+                    />
                   </div>
-
                   <div class="col-sm-6">
                     <FormSelect
                       name="role_id"
