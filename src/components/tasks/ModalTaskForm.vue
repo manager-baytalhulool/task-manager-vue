@@ -6,7 +6,9 @@ import type { TaskIndex } from '@/types/Task'
 import type { BaseEntity } from '@/types/BaseEntity'
 
 const users = ref([])
+const projects = ref([])
 const selectedUser = ref<BaseEntity | null>(null)
+const selectedProject = ref<BaseEntity | null>(null)
 const description = ref('')
 
 async function fetchUsers() {
@@ -16,9 +18,18 @@ async function fetchUsers() {
   users.value = res.data.data.users
 }
 
+async function fetchProjects() {
+  const res = await api.get('/api/projects', {
+    params: { for: 'select' },
+  })
+  projects.value = res.data.data.projects
+}
+
 async function handleSubmit() {
   let selectedUserId = null
+  let selectedProjectId = null
   selectedUserId = selectedUser.value ? selectedUser.value.id : null
+  selectedProjectId = selectedProject.value ? selectedProject.value.id : null
 
   let response = null
   try {
@@ -26,11 +37,13 @@ async function handleSubmit() {
       response = await api.put(`api/tasks/${selectedTask.value.id}`, {
         description: description.value,
         assignee_id: selectedUserId,
+        project_id: selectedProjectId,
       })
     } else {
       response = await api.post('/api/tasks', {
         description: description.value,
         assignee_id: selectedUserId,
+        project_id: selectedProjectId,
       })
     }
     emits('taskCreated', response.data.data.task)
@@ -39,6 +52,7 @@ async function handleSubmit() {
 
 onMounted(() => {
   fetchUsers()
+  fetchProjects()
 })
 
 const props = defineProps<{
@@ -55,9 +69,11 @@ function setForm() {
   if (props.selectedTask) {
     description.value = props.selectedTask.description
     selectedUser.value = props.selectedTask.assignee
+    selectedProject.value = props.selectedTask.project
   } else {
     description.value = ''
     selectedUser.value = null
+    selectedProject.value = null
   }
 }
 
@@ -96,6 +112,10 @@ watch(selectedTask, async () => {
             <div class="mb-3">
               <label for="message-text" class="col-form-label">Assignee:</label>
               <v-select label="name" v-model="selectedUser" :options="users" />
+            </div>
+            <div class="mb-3">
+              <label for="message-text" class="col-form-label">Project:</label>
+              <v-select label="name" v-model="selectedProject" :options="projects" />
             </div>
           </div>
           <div class="modal-footer">

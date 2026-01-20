@@ -8,4 +8,6 @@ export interface TaskIndex {
   is_paid: boolean
   assignee: BaseEntity
   assignee_id: number
+  project: BaseEntity
+  project_id: number
 }

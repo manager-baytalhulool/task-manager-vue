@@ -17,6 +17,9 @@ import TasksView from '@/views/tasks/TasksView.vue'
 import UsersView from '@/views/users/UsersView.vue'
 import UserFormView from '@/views/users/UserFormView.vue'
 import TaskView from '@/views/tasks/TaskView.vue'
+import ProjectsView from '@/views/projects/ProjectsView.vue'
+import ProjectFormView from '@/views/projects/ProjectFormView.vue'
+import ProjectView from '@/views/projects/ProjectView.vue'
 
 let isInitiated: boolean = false
 
@@ -114,6 +117,31 @@ const router = createRouter({
               path: ':id/edit',
               name: 'users.edit',
               component: UserFormView,
+            },
+          ],
+        },
+        {
+          path: 'projects',
+          children: [
+            {
+              path: '',
+              name: 'projects.index',
+              component: ProjectsView,
+            },
+            {
+              path: 'create',
+              name: 'projects.create',
+              component: ProjectFormView,
+            },
+            {
+              path: ':id/edit',
+              name: 'projects.edit',
+              component: ProjectFormView,
+            },
+            {
+              path: ':id',
+              name: 'projects.show',
+              component: ProjectView,
             },
           ],
         },

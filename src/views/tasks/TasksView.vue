@@ -26,7 +26,8 @@ const selectedTask = ref<TaskIndex | null>(null)
 const columns: IColumn<TaskIndex>[] = [
   { label: 'ID', field: 'id', sortable: true },
   { label: 'Assignee', field: 'assignee_id', sortable: true },
-  { label: 'Task', field: 'description', sortable: true },
+  { label: 'Description', field: 'description', sortable: true },
+  { label: 'Project', field: 'project_id', sortable: true },
   { label: 'Status', field: 'status', sortable: true },
   { label: 'Actions', field: 'actions' },
 ]
@@ -158,6 +159,9 @@ onMounted(async () => {
                   <RouterLink :to="`/tasks/${task.id}`" target="_blank">
                     {{ task.description }}</RouterLink
                   >
+                </template>
+                <template #cell-project_id="{ row: task }">
+                  {{ task.project.name }}
                 </template>
                 <template #cell-actions="{ row: task, rowIndex: index }">
                   <div class="d-flex gap-1">
