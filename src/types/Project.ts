@@ -1,4 +1,7 @@
-interface Project {
+import type { Repository } from './Repository'
+import type { Task } from './Task'
+
+export interface Project {
   id: number
   name: string
   live_url: string
@@ -8,6 +11,8 @@ interface Project {
   created_at: Date
   updated_at: Date
   deleted_at: Date | null
+  tasks: Task[]
+  repositories: Repository[]
 }
 
 export type ProjectIndex = Pick<

@@ -1,11 +1,13 @@
 <script setup lang="ts">
+import { TaskStatusEnum } from '@/enums/TaskStatusEnum'
 import api from '@/plugins/axios'
+import type { Project } from '@/types/Project'
 import { onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 
 const route = useRoute()
 
-const project = ref<any>({})
+const project = ref<Project>({} as Project)
 const isViewReady = ref<boolean>(false)
 
 const getProject = async () => {
@@ -95,7 +97,7 @@ onMounted(async () => {
                       <td>{{ task.description }}</td>
                       <td>
                         <span
-                          :class="`badge text-bg-${task.status == 'created' ? 'info' : task.status == 'in_progress' ? 'primary' : task.status == 'on_hold' ? 'warning' : task.status == 'completed' ? 'success' : 'danger'}`"
+                          :class="`badge text-bg-${task.status == TaskStatusEnum.Created ? 'info' : task.status == TaskStatusEnum.InProgress ? 'primary' : task.status == TaskStatusEnum.OnHold ? 'warning' : task.status == TaskStatusEnum.Completed ? 'success' : 'danger'}`"
                           >{{ task.status }}</span
                         >
                       </td>
