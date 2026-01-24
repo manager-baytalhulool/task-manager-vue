@@ -24,6 +24,7 @@ const selectedTask = ref<TaskIndex | null>(null)
 
 // let selectedSeasonalPlanId: any = null;
 const columns: IColumn<TaskIndex>[] = [
+  { label: '#', field: 'serial_number' },
   { label: 'ID', field: 'id', sortable: true },
   { label: 'Assignee', field: 'assignee_id', sortable: true },
   { label: 'Description', field: 'description', sortable: true },
@@ -152,6 +153,9 @@ onMounted(async () => {
                 @page-change="handlePageChange"
                 @search-change="handleSearchChange"
               >
+                <template #cell-serial_number="{ rowIndex: index }">
+                  {{ index + 1 }}
+                </template>
                 <template #cell-assignee_id="{ row: task }">
                   {{ task.assignee.name }}
                 </template>

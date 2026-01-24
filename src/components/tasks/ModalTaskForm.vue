@@ -107,7 +107,12 @@ watch(selectedTask, async () => {
           <div class="modal-body">
             <div class="mb-3">
               <label for="recipient-name" class="col-form-label">Description:</label>
-              <input v-model="description" type="text" class="form-control" id="recipient-name" />
+              <textarea
+                v-model="description"
+                class="form-control"
+                id="recipient-name"
+                rows="3"
+              ></textarea>
             </div>
             <div class="mb-3">
               <label for="message-text" class="col-form-label">Assignee:</label>

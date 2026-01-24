@@ -2,6 +2,7 @@ import type { TaskStatusEnum } from '@/enums/TaskStatusEnum'
 import type { BaseEntity } from './BaseEntity'
 
 export interface TaskIndex {
+  serial_number: number
   id: number
   description: string
   status: TaskStatusEnum

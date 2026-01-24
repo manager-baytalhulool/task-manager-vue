@@ -1,4 +1,5 @@
 interface Project {
+  serial_number: number
   id: number
   name: string
   live_url: string
@@ -12,7 +13,7 @@ interface Project {
 
 export type ProjectIndex = Pick<
   Project,
-  'id' | 'name' | 'live_url' | 'demo_url' | 'is_live' | 'started_at'
+  'id' | 'name' | 'live_url' | 'demo_url' | 'is_live' | 'started_at' | 'serial_number'
 >
 
 export type ProjectForm = Pick<Project, 'name' | 'live_url' | 'demo_url' | 'is_live' | 'started_at'>

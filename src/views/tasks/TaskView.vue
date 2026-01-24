@@ -1,5 +1,8 @@
 <script setup lang="ts">
+import ModalSubtaskForm from '@/components/subtasks/ModalSubtaskForm.vue'
 import api from '@/plugins/axios'
+import type { SubtaskIndex } from '@/types/Subtask'
+import { Modal } from 'bootstrap'
 import { onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 
@@ -7,6 +10,8 @@ const route = useRoute()
 
 const task = ref<any>({})
 const isViewReady = ref<boolean>(false)
+let addSubtaskModal: Modal | null = null
+const selectedSubtask = ref<SubtaskIndex | null>(null)
 
 const getTask = async () => {
   const id = route.params.id
@@ -15,9 +20,35 @@ const getTask = async () => {
   task.value = response.data.data.task
 }
 
+const handleCheckboxToggle = async (task) => {
+  const url = `/api/subtasks/${task.id}`
+  if (task.completed_at !== null) {
+    await api.put(url, {
+      completed_at: task.completed_at,
+    })
+    task.completed_at = null
+  } else {
+    const response = await api.put(url, {
+      completed_at: task.completed_at,
+    })
+    task.completed_at = response.data.data.subtask.completed_at
+  }
+}
+
+const handleAddSubtaskClick = async () => {
+  addSubtaskModal!.show()
+}
+
+const handleSubtaskCreated = (subtask: SubtaskIndex) => {
+  task.value.subtasks.push(subtask)
+  addSubtaskModal!.hide()
+}
+
 onMounted(() => {
   getTask()
   isViewReady.value = true
+  const addSubtaskFormModal = document.getElementById('addSubtaskFormModal')
+  if (addSubtaskFormModal) addSubtaskModal = new Modal(addSubtaskFormModal)
 })
 </script>
 
@@ -78,7 +109,7 @@ onMounted(() => {
           <div class="card">
             <div class="card-header d-flex justify-content-between align-items-center">
               <h5 class="card-title mb-0">Subtasks</h5>
-              <button class="btn btn-primary">Add Subtask (Not Implemented)</button>
+              <button class="btn btn-primary" @click="handleAddSubtaskClick">Add Subtask</button>
             </div>
             <div class="text-end"></div>
             <div class="card-body">
@@ -86,13 +117,23 @@ onMounted(() => {
                 <table class="table table-bordered table-hover">
                   <thead>
                     <tr>
+                      <th>#</th>
+                      <th>Checkbox</th>
                       <th>Description</th>
                       <th>Completed At</th>
                       <th>Sort No</th>
                     </tr>
                   </thead>
                   <tbody>
-                    <tr v-for="subtask in task.subtasks" :key="subtask.id">
+                    <tr v-for="(subtask, i) in task.subtasks" :key="subtask.id">
+                      <td>{{ i + 1 }}</td>
+                      <td>
+                        <input
+                          type="checkbox"
+                          @change="handleCheckboxToggle(subtask)"
+                          :checked="subtask.completed_at !== null"
+                        />
+                      </td>
                       <td>{{ subtask.description }}</td>
                       <td>{{ subtask.completed_at }}</td>
                       <td>{{ subtask.sort_no }}</td>
@@ -105,5 +146,6 @@ onMounted(() => {
         </div>
       </div>
     </div>
+    <ModalSubtaskForm @subtask-created="handleSubtaskCreated" />
   </main>
 </template>

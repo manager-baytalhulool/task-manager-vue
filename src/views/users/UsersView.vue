@@ -24,6 +24,7 @@ const warningMessage = ref<string>('')
 const selectedUser = ref<UserIndex | null>(null)
 
 const columns: IColumn<UserIndex>[] = [
+  { label: '#', field: 'serial_number' },
   { label: 'ID', field: 'id', sortable: true },
   { label: 'Name', field: 'name', sortable: true },
   { label: 'Email', field: 'email', sortable: true },
@@ -157,6 +158,9 @@ onMounted(async () => {
                 @page-change="handlePageChange"
                 @search-change="handleSearchChange"
               >
+                <template #cell-serial_number="{ rowIndex: index }">
+                  {{ index + 1 }}
+                </template>
                 <template #cell-name="{ row: user }">
                   {{ user.name }}
                 </template>

@@ -1,4 +1,5 @@
 interface User {
+  serial_number: number
   id: number
   role_id: number
   name: string
@@ -9,7 +10,7 @@ interface User {
   updated_at: Date
 }
 
-export type UserIndex = Pick<User, 'id' | 'role_id' | 'name' | 'email'>
+export type UserIndex = Pick<User, 'id' | 'role_id' | 'name' | 'email' | 'serial_number'>
 
 export type UserForm = Pick<User, 'name' | 'email' | 'password'> & {
   role_id: number | null

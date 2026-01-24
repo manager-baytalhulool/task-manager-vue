@@ -24,6 +24,7 @@ const warningMessage = ref<string>('')
 const selectedProject = ref<ProjectIndex | null>(null)
 
 const columns: IColumn<ProjectIndex>[] = [
+  { label: '#', field: 'serial_number' },
   { label: 'ID', field: 'id', sortable: true },
   { label: 'Name', field: 'name', sortable: true },
   { label: 'Live URL', field: 'live_url', sortable: true },
@@ -115,6 +116,9 @@ onMounted(async () => {
                 @page-change="handlePageChange"
                 @search-change="handleSearchChange"
               >
+                <template #cell-serial_number="{ rowIndex: index }">
+                  {{ index + 1 }}
+                </template>
                 <template #cell-name="{ row: project }">
                   <RouterLink :to="`/projects/${project.id}`">
                     {{ project.name }}
