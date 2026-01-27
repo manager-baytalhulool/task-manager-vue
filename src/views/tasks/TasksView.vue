@@ -171,23 +171,42 @@ onMounted(async () => {
                   <div class="d-flex gap-1">
                     <button
                       class="btn btn-info btn-sm"
+                      v-if="
+                        task.status !== TaskStatusEnum.Completed &&
+                        task.status !== TaskStatusEnum.InProgress
+                      "
                       @click="handleTaskStatusChange(task, taskStatusActionsEnum.start!)"
                     >
                       Start
                     </button>
                     <button
                       class="btn btn-warning btn-sm"
+                      v-if="
+                        task.status !== TaskStatusEnum.Completed &&
+                        task.status !== TaskStatusEnum.OnHold &&
+                        task.status !== TaskStatusEnum.Created
+                      "
                       @click="handleTaskStatusChange(task, taskStatusActionsEnum.hold!)"
                     >
                       Hold
                     </button>
                     <button
                       class="btn btn-info btn-sm"
+                      v-if="
+                        task.status !== TaskStatusEnum.Completed &&
+                        task.status !== TaskStatusEnum.Created
+                      "
                       @click="handleTaskStatusChange(task, taskStatusActionsEnum.complete!)"
                     >
                       Complete
                     </button>
-                    <button @click="handleEditClick(task)" class="btn btn-info btn-sm">Edit</button>
+                    <button
+                      @click="handleEditClick(task)"
+                      v-if="task.status !== TaskStatusEnum.Completed"
+                      class="btn btn-info btn-sm"
+                    >
+                      Edit
+                    </button>
                     <button class="btn btn-danger btn-sm" @click="handleDeleteClick(task, index)">
                       Delete
                     </button>

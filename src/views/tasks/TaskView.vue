@@ -2,6 +2,7 @@
 import ModalSubtaskForm from '@/components/subtasks/ModalSubtaskForm.vue'
 import api from '@/plugins/axios'
 import type { SubtaskIndex } from '@/types/Subtask'
+import type { TaskIndex } from '@/types/Task'
 import { Modal } from 'bootstrap'
 import { onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
@@ -20,7 +21,7 @@ const getTask = async () => {
   task.value = response.data.data.task
 }
 
-const handleCheckboxToggle = async (task) => {
+const handleCheckboxToggle = async (task: TaskIndex) => {
   const url = `/api/subtasks/${task.id}`
   if (task.completed_at !== null) {
     await api.put(url, {
@@ -36,12 +37,33 @@ const handleCheckboxToggle = async (task) => {
 }
 
 const handleAddSubtaskClick = async () => {
+  selectedSubtask.value = null
   addSubtaskModal!.show()
 }
 
+// const handleSubtaskCreated = (subtask: SubtaskIndex) => {
+//   task.value.subtasks.push(subtask)
+//   addSubtaskModal!.hide()
+// }
+
 const handleSubtaskCreated = (subtask: SubtaskIndex) => {
-  task.value.subtasks.push(subtask)
+  const index = task.value.subtasks.findIndex((s: any) => s.id === subtask.id)
+  if (index !== -1) {
+    task.value.subtasks[index] = subtask
+  } else {
+    task.value.subtasks.push(subtask)
+  }
   addSubtaskModal!.hide()
+}
+
+const handleDeleteSubtask = async (subtaskId: number, index: number) => {
+  if (!confirm('Are you sure you want to delete this subtask?')) return
+  try {
+    await api.delete(`/api/subtasks/${subtaskId}`)
+    task.value.subtasks.splice(index, 1)
+  } catch (error) {
+    console.error('Delete failed:', error)
+  }
 }
 
 onMounted(() => {
@@ -122,11 +144,12 @@ onMounted(() => {
                       <th>Description</th>
                       <th>Completed At</th>
                       <th>Sort No</th>
+                      <th>Actions</th>
                     </tr>
                   </thead>
                   <tbody>
                     <tr v-for="(subtask, i) in task.subtasks" :key="subtask.id">
-                      <td>{{ i + 1 }}</td>
+                      <td>{{ (i as number) + 1 }}</td>
                       <td>
                         <input
                           type="checkbox"
@@ -137,6 +160,22 @@ onMounted(() => {
                       <td>{{ subtask.description }}</td>
                       <td>{{ subtask.completed_at }}</td>
                       <td>{{ subtask.sort_no }}</td>
+                      <td>
+                        <button
+                          class="btn btn-sm btn-primary"
+                          data-bs-toggle="modal"
+                          data-bs-target="#addSubtaskFormModal"
+                          @click="selectedSubtask = subtask"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          class="btn btn-sm btn-danger"
+                          @click="handleDeleteSubtask(subtask.id, i as number)"
+                        >
+                          Delete
+                        </button>
+                      </td>
                     </tr>
                   </tbody>
                 </table>
@@ -146,6 +185,10 @@ onMounted(() => {
         </div>
       </div>
     </div>
-    <ModalSubtaskForm @subtask-created="handleSubtaskCreated" />
+    <ModalSubtaskForm
+      :task-id="task.id"
+      :selected-subtask="selectedSubtask"
+      @subtask-created="handleSubtaskCreated"
+    />
   </main>
 </template>

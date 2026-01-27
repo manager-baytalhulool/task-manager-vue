@@ -11,11 +11,12 @@ export interface Task {
   assignee_id: number
   project: BaseEntity
   project_id: number
+  completed_at: string | null
 }
 
 export type TaskIndex = Pick<
   Task,
-  'id' | 'description' | 'status' | 'is_paid' | 'assignee_id' | 'project_id' | 'serial_number'
+  'id' | 'description' | 'status' | 'is_paid' | 'assignee_id' | 'project_id' | 'serial_number' | 'completed_at'
 > & {
   project: BaseEntity
   assignee: BaseEntity

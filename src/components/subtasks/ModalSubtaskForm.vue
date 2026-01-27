@@ -20,26 +20,27 @@ async function fetchTasks() {
 }
 
 async function handleSubmit() {
-  let selectedTaskId = null
-  selectedTaskId = selectedTask.value ? selectedTask.value.id : null
-
+  const selectedTaskId = props.taskId
   let response = null
+
+  const payload = {
+    description: description.value,
+    task_id: selectedTaskId,
+    sort_no: sortNo.value,
+  }
+
   try {
-    if (selectedSubtask.value) {
-      response = await api.put(`api/subtasks/${selectedSubtask.value.id}`, {
-        description: description.value,
-        task_id: selectedTaskId,
-        sort_no: sortNo.value,
-      })
+    if (props.selectedSubtask) {
+      // Update existing subtask
+      response = await api.put(`api/subtasks/${props.selectedSubtask.id}`, payload)
     } else {
-      response = await api.post('/api/subtasks', {
-        description: description.value,
-        task_id: selectedTaskId,
-        sort_no: sortNo.value,
-      })
+      // Create new subtask
+      response = await api.post('/api/subtasks', payload)
     }
     emits('subtaskCreated', response.data.data.subtask)
-  } catch {}
+  } catch (error) {
+    console.error('Submission failed:', error)
+  }
 }
 
 onMounted(() => {
@@ -48,6 +49,7 @@ onMounted(() => {
 
 const props = defineProps<{
   selectedSubtask: SubtaskIndex | null
+  taskId: number | null
 }>()
 
 const emits = defineEmits<{
@@ -106,7 +108,9 @@ watch(selectedSubtask, async () => {
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-            <button type="submit" class="btn btn-primary">Create Task</button>
+            <button type="submit" class="btn btn-primary">
+              {{ selectedSubtask ? 'Update' : 'Save' }} Subtask
+            </button>
           </div>
         </form>
       </div>
