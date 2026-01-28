@@ -66,8 +66,8 @@ const handleDeleteSubtask = async (subtaskId: number, index: number) => {
   }
 }
 
-onMounted(() => {
-  getTask()
+onMounted(async () => {
+  await getTask()
   isViewReady.value = true
   const addSubtaskFormModal = document.getElementById('addSubtaskFormModal')
   if (addSubtaskFormModal) addSubtaskModal = new Modal(addSubtaskFormModal)
@@ -186,7 +186,7 @@ onMounted(() => {
       </div>
     </div>
     <ModalSubtaskForm
-      :task-id="task.id"
+      :task-id="Number($route.params.id)"
       :selected-subtask="selectedSubtask"
       @subtask-created="handleSubtaskCreated"
     />

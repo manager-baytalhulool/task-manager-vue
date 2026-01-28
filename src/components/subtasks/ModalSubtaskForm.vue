@@ -5,10 +5,18 @@ import api from '@/plugins/axios'
 import type { TaskIndex } from '@/types/Task'
 import type { BaseEntity } from '@/types/BaseEntity'
 import type { SubtaskIndex } from '@/types/Subtask'
+import { useRoute } from 'vue-router'
 
+const props = defineProps<{
+  selectedSubtask: SubtaskIndex | null
+  taskId: number | null
+}>()
+
+const route = useRoute()
 const tasks = ref([])
 const selectedTask = ref<BaseEntity | null>(null)
 // const selectedSubtask = ref<BaseEntity | null>(null)
+const selectedTaskId = props.taskId || Number(route.params.id)
 const description = ref('')
 const sortNo = ref('')
 
@@ -20,7 +28,6 @@ async function fetchTasks() {
 }
 
 async function handleSubmit() {
-  const selectedTaskId = props.taskId
   let response = null
 
   const payload = {
@@ -46,11 +53,6 @@ async function handleSubmit() {
 onMounted(() => {
   fetchTasks()
 })
-
-const props = defineProps<{
-  selectedSubtask: SubtaskIndex | null
-  taskId: number | null
-}>()
 
 const emits = defineEmits<{
   (e: 'subtaskCreated', subtask: SubtaskIndex): void
