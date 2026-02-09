@@ -13,12 +13,35 @@ const task = ref<any>({})
 const isViewReady = ref<boolean>(false)
 let addSubtaskModal: Modal | null = null
 const selectedSubtask = ref<SubtaskIndex | null>(null)
+const commentBody = ref('')
+const replyToId = ref<number | null>(null)
 
 const getTask = async () => {
   const id = route.params.id
   const url = `/api/tasks/${id}`
   const response = await api.get(url)
   task.value = response.data.data.task
+  if (!task.value.comments) task.value.comments = []
+}
+
+const handleCommentSubmit = async (parentId: number | null = null) => {
+  if (!commentBody.value) return
+  try {
+    const res = await api.post('/api/comments', {
+      task_id: route.params.id,
+      body: commentBody.value,
+      parent_id: parentId,
+    })
+    if (parentId === null) {
+      task.value.comments.push({ ...res.data.comment, replies: [] })
+    } else {
+      await getTask() // Tree refresh karne ke liye simple tareeqa
+    }
+    commentBody.value = ''
+    replyToId.value = null
+  } catch (err) {
+    console.error(err)
+  }
 }
 
 const handleCheckboxToggle = async (task: TaskIndex) => {
@@ -54,6 +77,26 @@ const handleSubtaskCreated = (subtask: SubtaskIndex) => {
     task.value.subtasks.push(subtask)
   }
   addSubtaskModal!.hide()
+}
+
+const handleSubtaskSubmit = async (payload: any) => {
+  let response = null
+  const taskId = route.params.id
+  const finalPayload = { ...payload, task_id: taskId }
+
+  try {
+    if (selectedSubtask.value) {
+      // Update logic
+      response = await api.put(`api/subtasks/${selectedSubtask.value.id}`, finalPayload)
+      handleSubtaskCreated(response.data.data.subtask)
+    } else {
+      // Create logic
+      response = await api.post('/api/subtasks', finalPayload)
+      handleSubtaskCreated(response.data.data.subtask)
+    }
+  } catch (error) {
+    console.error('Subtask operation failed:', error)
+  }
 }
 
 const handleDeleteSubtask = async (subtaskId: number, index: number) => {
@@ -184,11 +227,79 @@ onMounted(async () => {
           </div>
         </div>
       </div>
+
+      <div class="row mt-4">
+        <div class="col-12">
+          <div class="card">
+            <div class="card-header"><h5 class="card-title mb-0">Comments & Discussion</h5></div>
+            <div class="card-body">
+              <!-- Comment List -->
+              <div
+                v-for="comment in task.comments"
+                :key="comment.id"
+                class="mb-3 border-bottom pb-2"
+              >
+                <div class="d-flex justify-content-between">
+                  <strong>{{ comment.user.name }}</strong>
+                  <small class="text-muted">{{ comment.created_at }}</small>
+                </div>
+                <p class="mb-1">{{ comment.body }}</p>
+                <button class="btn btn-link btn-sm p-0" @click="replyToId = comment.id">
+                  Reply
+                </button>
+
+                <!-- Replies (Nesting) -->
+                <div
+                  v-if="comment.replies && comment.replies.length"
+                  class="ms-4 mt-2 border-start ps-3"
+                >
+                  <div v-for="reply in comment.replies" :key="reply.id" class="mb-2">
+                    <strong>{{ reply.user.name }}:</strong> <span>{{ reply.body }}</span>
+                  </div>
+                </div>
+
+                <!-- Reply Input -->
+                <div v-if="replyToId === comment.id" class="mt-2">
+                  <textarea
+                    v-model="commentBody"
+                    class="form-control mb-2"
+                    rows="2"
+                    placeholder="Write a reply..."
+                  ></textarea>
+                  <button
+                    class="btn btn-primary btn-sm me-2"
+                    @click="handleCommentSubmit(comment.id)"
+                  >
+                    Submit Reply
+                  </button>
+                  <button class="btn btn-light btn-sm" @click="replyToId = null">Cancel</button>
+                </div>
+              </div>
+
+              <!-- Main Comment Input (Only for Assignee) -->
+              <div v-if="!replyToId" class="mt-4">
+                <h6>Add a Comment</h6>
+                <textarea
+                  v-model="commentBody"
+                  class="form-control mb-2"
+                  rows="3"
+                  placeholder="Type your update here..."
+                ></textarea>
+                <button class="btn btn-primary" @click="handleCommentSubmit(null)">
+                  Post Comment
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
-    <ModalSubtaskForm
+    <!-- <ModalSubtaskForm
       :task-id="Number($route.params.id)"
       :selected-subtask="selectedSubtask"
       @subtask-created="handleSubtaskCreated"
-    />
+    /> -->
+
+    <ModalSubtaskForm :selected-subtask="selectedSubtask" @submit="handleSubtaskSubmit" />
   </main>
 </template>

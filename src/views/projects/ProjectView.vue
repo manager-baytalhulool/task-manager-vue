@@ -97,7 +97,7 @@ onMounted(async () => {
                       <td>{{ task.description }}</td>
                       <td>
                         <span
-                          :class="`badge text-bg-${task.status == TaskStatusEnum.Created ? 'info' : task.status == TaskStatusEnum.InProgress ? 'primary' : task.status == TaskStatusEnum.OnHold ? 'warning' : task.status == TaskStatusEnum.Completed ? 'success' : 'danger'}`"
+                          :class="`badge text-bg-${task.status == TaskStatusEnum.Created ? 'info' : task.status == TaskStatusEnum.InProgress ? 'primary' : task.status == TaskStatusEnum.OnHold ? 'warning' : task.status == TaskStatusEnum.CompletionApproved ? 'success' : 'danger'}`"
                           >{{ task.status }}</span
                         >
                       </td>

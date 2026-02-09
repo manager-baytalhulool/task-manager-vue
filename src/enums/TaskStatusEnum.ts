@@ -1,6 +1,8 @@
 export enum TaskStatusEnum {
   Created = 'created',
-  OnHold = 'on_hold',
-  InProgress = 'in_progress',
-  Completed = 'completed',
+  OnHold = 'on hold',
+  InProgress = 'in progress',
+  NeedsRevision = 'needs revision',
+  InReview = 'in review',
+  CompletionApproved = 'completion approved',
 }

@@ -1,67 +1,22 @@
 <script setup lang="ts">
 import vSelect from 'vue-select'
-import { onMounted, ref, toRefs, watch } from 'vue'
-import api from '@/plugins/axios'
+import { ref, toRefs, watch } from 'vue'
 import type { TaskIndex } from '@/types/Task'
 import type { BaseEntity } from '@/types/BaseEntity'
 
-const users = ref([])
-const projects = ref([])
-const selectedUser = ref<BaseEntity | null>(null)
-const selectedProject = ref<BaseEntity | null>(null)
-const description = ref('')
-
-async function fetchUsers() {
-  const res = await api.get('/api/users', {
-    params: { for: 'select' },
-  })
-  users.value = res.data.data.users
-}
-
-async function fetchProjects() {
-  const res = await api.get('/api/projects', {
-    params: { for: 'select' },
-  })
-  projects.value = res.data.data.projects
-}
-
-async function handleSubmit() {
-  let selectedUserId = null
-  let selectedProjectId = null
-  selectedUserId = selectedUser.value ? selectedUser.value.id : null
-  selectedProjectId = selectedProject.value ? selectedProject.value.id : null
-
-  let response = null
-  try {
-    if (selectedTask.value) {
-      response = await api.put(`api/tasks/${selectedTask.value.id}`, {
-        description: description.value,
-        assignee_id: selectedUserId,
-        project_id: selectedProjectId,
-      })
-    } else {
-      response = await api.post('/api/tasks', {
-        description: description.value,
-        assignee_id: selectedUserId,
-        project_id: selectedProjectId,
-      })
-    }
-    emits('taskCreated', response.data.data.task)
-  } catch {}
-}
-
-onMounted(() => {
-  fetchUsers()
-  fetchProjects()
-})
-
 const props = defineProps<{
   selectedTask: TaskIndex | null
+  users: BaseEntity[]
+  projects: BaseEntity[]
 }>()
 
 const emits = defineEmits<{
-  (e: 'taskCreated', task: TaskIndex): void
+  (e: 'submit', payload: any): void
 }>()
+
+const selectedUser = ref<BaseEntity | null>(null)
+const selectedProject = ref<BaseEntity | null>(null)
+const description = ref('')
 
 const { selectedTask } = toRefs(props)
 
@@ -80,6 +35,15 @@ function setForm() {
 watch(selectedTask, async () => {
   setForm()
 })
+
+async function handleSubmit() {
+  const payload = {
+    description: description.value,
+    assignee_id: selectedUser.value ? selectedUser.value.id : null,
+    project_id: selectedProject.value ? selectedProject.value.id : null,
+  }
+  emits('submit', payload)
+}
 </script>
 
 <template>

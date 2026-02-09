@@ -70,6 +70,7 @@ const emit = defineEmits([
 
 // Reactive state
 const searchQuery = ref('')
+// Sort field
 const sortField = ref('')
 const sortDirection = ref('asc')
 

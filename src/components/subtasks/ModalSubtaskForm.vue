@@ -1,61 +1,80 @@
 <script setup lang="ts">
-import vSelect from 'vue-select'
-import { onMounted, ref, toRefs, watch } from 'vue'
-import api from '@/plugins/axios'
-import type { TaskIndex } from '@/types/Task'
-import type { BaseEntity } from '@/types/BaseEntity'
+// import vSelect from 'vue-select'
+import { ref, toRefs, watch } from 'vue'
+// import api from '@/plugins/axios'
+// import type { TaskIndex } from '@/types/Task'
+// import type { BaseEntity } from '@/types/BaseEntity'
+// import type { SubtaskIndex } from '@/types/Subtask'
+// import { useRoute } from 'vue-router'
+
+// const props = defineProps<{
+//   selectedSubtask: SubtaskIndex | null
+//   taskId: number | null
+// }>()
+
+// const route = useRoute()
+// const tasks = ref([])
+// const selectedTask = ref<BaseEntity | null>(null)
+// // const selectedSubtask = ref<BaseEntity | null>(null)
+// const selectedTaskId = props.taskId || Number(route.params.id)
+
 import type { SubtaskIndex } from '@/types/Subtask'
-import { useRoute } from 'vue-router'
 
 const props = defineProps<{
   selectedSubtask: SubtaskIndex | null
-  taskId: number | null
 }>()
 
-const route = useRoute()
-const tasks = ref([])
-const selectedTask = ref<BaseEntity | null>(null)
-// const selectedSubtask = ref<BaseEntity | null>(null)
-const selectedTaskId = props.taskId || Number(route.params.id)
 const description = ref('')
 const sortNo = ref('')
 
-async function fetchTasks() {
-  const res = await api.get('/api/tasks', {
-    params: { for: 'select' },
-  })
-  tasks.value = res.data.data.tasks
-}
+// async function fetchTasks() {
+//   const res = await api.get('/api/tasks', {
+//     params: { for: 'select' },
+//   })
+//   tasks.value = res.data.data.tasks
+// }
+
+// async function handleSubmit() {
+//   let response = null
+
+//   const payload = {
+//     description: description.value,
+//     task_id: selectedTaskId,
+//     sort_no: sortNo.value,
+//   }
+
+//   try {
+//     if (props.selectedSubtask) {
+//       // Update existing subtask
+//       response = await api.put(`api/subtasks/${props.selectedSubtask.id}`, payload)
+//     } else {
+//       // Create new subtask
+//       response = await api.post('/api/subtasks', payload)
+//     }
+//     emits('subtaskCreated', response.data.data.subtask)
+//   } catch (error) {
+//     console.error('Submission failed:', error)
+//   }
+// }
 
 async function handleSubmit() {
-  let response = null
-
   const payload = {
     description: description.value,
-    task_id: selectedTaskId,
     sort_no: sortNo.value,
   }
-
-  try {
-    if (props.selectedSubtask) {
-      // Update existing subtask
-      response = await api.put(`api/subtasks/${props.selectedSubtask.id}`, payload)
-    } else {
-      // Create new subtask
-      response = await api.post('/api/subtasks', payload)
-    }
-    emits('subtaskCreated', response.data.data.subtask)
-  } catch (error) {
-    console.error('Submission failed:', error)
-  }
+  emits('submit', payload)
 }
 
-onMounted(() => {
-  fetchTasks()
-})
+// onMounted(() => {
+//   fetchTasks()
+// })
+
+// const emits = defineEmits<{
+//   (e: 'subtaskCreated', subtask: SubtaskIndex): void
+// }>()
 
 const emits = defineEmits<{
-  (e: 'subtaskCreated', subtask: SubtaskIndex): void
+  (e: 'submit', payload: any): void
 }>()
 
 const { selectedSubtask } = toRefs(props)
@@ -88,7 +107,7 @@ watch(selectedSubtask, async () => {
         <form v-on:submit.prevent="handleSubmit">
           <div class="modal-header">
             <h1 class="modal-title fs-5" id="taskFormModalLabel">
-              {{ selectedTask ? 'Edit' : 'Create' }} Task
+              {{ selectedSubtask ? 'Edit' : 'Create' }} Subtask
             </h1>
             <button
               type="button"

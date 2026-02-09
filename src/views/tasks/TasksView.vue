@@ -9,11 +9,14 @@ import api from '@/plugins/axios'
 import type { TaskIndex } from '@/types/Task'
 import AppDataTable from '@/components/AppDataTable.vue'
 import { useDataTable } from '@/composables/useDataTable'
+import { useAuthStore } from '@/stores/authStore'
 import type { IColumn, PaginationParams } from '@/types/Pagination'
 import { TaskStatusEnum } from '@/enums/TaskStatusEnum'
-// import { useDataTable } from '@/composables/useDataTable'
 
 const tasks = ref<TaskIndex[]>([])
+const users = ref<any[]>([])
+const projects = ref<any[]>([])
+const authStore = useAuthStore()
 let modalTaskForm: Modal | null = null
 
 let modalDelete: Modal | null = null
@@ -33,11 +36,13 @@ const columns: IColumn<TaskIndex>[] = [
   { label: 'Actions', field: 'actions' },
 ]
 
-const taskStatusActionsEnum: Record<string, string> = {
+const taskStatusActionsEnum = {
   start: 'InProgress',
   hold: 'OnHold',
-  complete: 'Completed',
-}
+  review: 'InReview',
+  approve: 'CompletionApproved',
+  reject: 'NeedsRevision',
+} as const
 
 const getTasks = async (params: PaginationParams) => {
   const url = `/api/tasks`
@@ -46,14 +51,21 @@ const getTasks = async (params: PaginationParams) => {
   return response.data.data.tasks
 }
 
+const fetchOptions = async () => {
+  const [resUsers, resProjects] = await Promise.all([
+    api.get('/api/users', { params: { for: 'select' } }),
+    api.get('/api/projects', { params: { for: 'select' } }),
+  ])
+  users.value = resUsers.data.data.users
+  projects.value = resProjects.data.data.projects
+}
+
 const handleDelete = async () => {
   //   const url = `https://first-touch-dev-default-rtdb.europe-west1.firebasedatabase.app/Seasonal_Plans/${selectedSeasonalPlanId}.json`;
   try {
     await api.delete(`api/tasks/${selectedTask.value!.id}`, {})
     const selectedTaskIndex = tasks.value.findIndex((t) => t.id == selectedTask.value!.id)
     tasks.value.splice(selectedTaskIndex, 1)
-
-    //     delete seasonalPlans.value[selectedSeasonalPlanId];
   } catch (ex) {
     console.log(ex)
     alert('something went wrong')
@@ -65,7 +77,6 @@ const handleDelete = async () => {
 const handleDeleteClick = (task: TaskIndex, index: number) => {
   console.log(task, index)
   selectedTask.value = task
-  //   selectedSeasonalPlanId = id;
   warningMessage.value = `Are you sure want to delete task number <strong>${selectedTask.value!.id}</strong>`
   modalDelete!.show()
 }
@@ -80,19 +91,27 @@ const handleEditClick = (task: TaskIndex) => {
   modalTaskForm!.show()
 }
 
-const handleTaskCreated = (task: TaskIndex) => {
-  console.log('task created')
-  if (selectedTask.value) {
-    const selectedTaskIndex = tasks.value.findIndex((t) => t.id == selectedTask.value!.id)
-    tasks.value[selectedTaskIndex] = task
-  } else {
-    tasks.value.push(task)
+const handleSaveTask = async (payload: any) => {
+  try {
+    let response
+    if (selectedTask.value) {
+      response = await api.put(`api/tasks/${selectedTask.value.id}`, payload)
+      const index = tasks.value.findIndex((t) => t.id == selectedTask.value!.id)
+      tasks.value[index] = response.data.data.task
+    } else {
+      response = await api.post('/api/tasks', payload)
+      tasks.value.push(response.data.data.task)
+    }
+    modalTaskForm!.hide()
+  } catch (error) {
+    console.error('Task save failed', error)
   }
-
-  modalTaskForm!.hide()
 }
 
-const handleTaskStatusChange = async (task: TaskIndex, action: string) => {
+const handleTaskStatusChange = async (
+  task: TaskIndex,
+  action: (typeof taskStatusActionsEnum)[keyof typeof taskStatusActionsEnum],
+) => {
   try {
     await api.put(`api/tasks/${task.id}`, {
       status:
@@ -100,7 +119,11 @@ const handleTaskStatusChange = async (task: TaskIndex, action: string) => {
           ? TaskStatusEnum.InProgress
           : action === taskStatusActionsEnum.hold
             ? TaskStatusEnum.OnHold
-            : TaskStatusEnum.Completed,
+            : action === taskStatusActionsEnum.review
+              ? TaskStatusEnum.InReview
+              : action === taskStatusActionsEnum.approve
+                ? TaskStatusEnum.CompletionApproved
+                : TaskStatusEnum.NeedsRevision,
     })
   } catch (ex) {
     console.log(ex)
@@ -112,8 +135,12 @@ const handleTaskStatusChange = async (task: TaskIndex, action: string) => {
     selectedTask.value.status = TaskStatusEnum.InProgress
   } else if (action === taskStatusActionsEnum.hold) {
     selectedTask.value.status = TaskStatusEnum.OnHold
-  } else if (action === taskStatusActionsEnum.complete) {
-    selectedTask.value.status = TaskStatusEnum.Completed
+  } else if (action === taskStatusActionsEnum.review) {
+    selectedTask.value.status = TaskStatusEnum.InReview
+  } else if (action === taskStatusActionsEnum.approve) {
+    selectedTask.value.status = TaskStatusEnum.CompletionApproved
+  } else if (action === taskStatusActionsEnum.reject) {
+    selectedTask.value.status = TaskStatusEnum.NeedsRevision
   }
 }
 
@@ -122,6 +149,7 @@ const { pagination, handlePageChange, handleSearchChange } = useDataTable<TaskIn
 })
 
 onMounted(async () => {
+  fetchOptions()
   const deleteModal = document.getElementById('modal-delete')
   const taskModal = document.getElementById('taskFormModal')
   if (deleteModal) modalDelete = new Modal(deleteModal, {})
@@ -167,7 +195,7 @@ onMounted(async () => {
                 <template #cell-project_id="{ row: task }">
                   {{ task.project.name }}
                 </template>
-                <template #cell-actions="{ row: task, rowIndex: index }">
+                <!-- <template #cell-actions="{ row: task, rowIndex: index }">
                   <div class="d-flex gap-1">
                     <button
                       class="btn btn-info btn-sm"
@@ -211,6 +239,84 @@ onMounted(async () => {
                       Delete
                     </button>
                   </div>
+                </template> -->
+
+                <template #cell-actions="{ row: task, rowIndex: index }">
+                  <div class="d-flex gap-1">
+                    <!-- Start/Resume Button -->
+                    <button
+                      class="btn btn-primary btn-sm"
+                      v-if="
+                        [
+                          TaskStatusEnum.Created,
+                          TaskStatusEnum.OnHold,
+                          TaskStatusEnum.NeedsRevision,
+                        ].includes(task.status) && authStore.user?.id === task.assignee_id
+                      "
+                      @click="handleTaskStatusChange(task, taskStatusActionsEnum.start)"
+                    >
+                      {{ task.status === TaskStatusEnum.NeedsRevision ? 'Fix & Start' : 'Start' }}
+                    </button>
+
+                    <!-- Hold Button -->
+                    <button
+                      class="btn btn-warning btn-sm"
+                      v-if="
+                        task.status === TaskStatusEnum.InProgress &&
+                        authStore.user?.id === task.assignee_id
+                      "
+                      @click="handleTaskStatusChange(task, taskStatusActionsEnum.hold)"
+                    >
+                      Hold
+                    </button>
+
+                    <!-- Submit for Review (Developer Action) -->
+                    <button
+                      class="btn btn-info btn-sm"
+                      v-if="
+                        task.status === TaskStatusEnum.InProgress &&
+                        authStore.user?.id === task.assignee_id
+                      "
+                      @click="handleTaskStatusChange(task, taskStatusActionsEnum.review)"
+                    >
+                      Submit for Review
+                    </button>
+
+                    <!-- Admin Approval Buttons -->
+                    <template
+                      v-if="
+                        authStore.user?.role_id === 1 && task.status === TaskStatusEnum.InReview
+                      "
+                    >
+                      <button
+                        class="btn btn-success btn-sm"
+                        @click="handleTaskStatusChange(task, taskStatusActionsEnum.approve)"
+                      >
+                        Approve
+                      </button>
+                      <button
+                        class="btn btn-danger btn-sm"
+                        @click="handleTaskStatusChange(task, taskStatusActionsEnum.reject)"
+                      >
+                        Reject
+                      </button>
+                    </template>
+
+                    <!-- Edit/Delete (Only if not approved) -->
+                    <button
+                      @click="handleEditClick(task)"
+                      v-if="task.status !== TaskStatusEnum.CompletionApproved"
+                      class="btn btn-secondary btn-sm"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      class="btn btn-outline-danger btn-sm"
+                      @click="handleDeleteClick(task, index)"
+                    >
+                      Delete
+                    </button>
+                  </div>
                 </template>
               </AppDataTable>
             </div>
@@ -219,6 +325,11 @@ onMounted(async () => {
       </div>
     </div>
     <AppModalDelete @onSubmit="handleDelete" :message="warningMessage" />
-    <ModalTaskForm :selectedTask="selectedTask" @taskCreated="handleTaskCreated" />
+    <ModalTaskForm
+      :selectedTask="selectedTask"
+      :users="users"
+      :projects="projects"
+      @submit="handleSaveTask"
+    />
   </main>
 </template>
