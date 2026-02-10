@@ -24,6 +24,8 @@ let modalDelete: Modal | null = null
 const warningMessage = ref<string>('')
 
 const selectedTask = ref<TaskIndex | null>(null)
+const selectedAssigneeId = ref('')
+const selectedStatus = ref('')
 
 // let selectedSeasonalPlanId: any = null;
 const columns: IColumn<TaskIndex>[] = [
@@ -91,6 +93,10 @@ const handleEditClick = (task: TaskIndex) => {
   modalTaskForm!.show()
 }
 
+const handleFilterChange = () => {
+  updateParams({ assignee_id: selectedAssigneeId.value, status: selectedStatus.value })
+}
+
 const handleSaveTask = async (payload: any) => {
   try {
     let response
@@ -144,7 +150,7 @@ const handleTaskStatusChange = async (
   }
 }
 
-const { pagination, handlePageChange, handleSearchChange } = useDataTable<TaskIndex>({
+const { pagination, handlePageChange, handleSearchChange, updateParams } = useDataTable<TaskIndex>({
   fetchFunction: getTasks,
 })
 
@@ -165,6 +171,27 @@ onMounted(async () => {
       <div class="row">
         <div class="col-12">
           <div class="mb-3 text-end">
+            <select
+              v-if="authStore.user?.role_id === 1"
+              class="form-select d-inline-block w-auto me-2"
+              v-model="selectedAssigneeId"
+              @change="handleFilterChange"
+            >
+              <option value="">All Assignees</option>
+              <option v-for="user in users" :key="user.id" :value="user.id">
+                {{ user.name }}
+              </option>
+            </select>
+            <select
+              class="form-select d-inline-block w-auto me-2"
+              v-model="selectedStatus"
+              @change="handleFilterChange"
+            >
+              <option value="">All Statuses</option>
+              <option v-for="status in Object.values(TaskStatusEnum)" :key="status" :value="status">
+                {{ status }}
+              </option>
+            </select>
             <button class="btn btn-primary ms-1" @click="handleAddNewClick">Add new</button>
             <!-- <RouterLink to="/tasks/create">
             </RouterLink> -->

@@ -12,6 +12,8 @@ export interface PaginationParams {
   page: number
   per_page: number
   search?: string
+  assignee_id?: string
+  status?: string
 }
 
 export interface PaginationResponse<T> {

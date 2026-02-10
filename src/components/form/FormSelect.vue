@@ -22,8 +22,8 @@ const updateValue = ($event: any) => {
       :placeholder="label"
       @change="updateValue"
     >
-    <option value="" selected>Select Option</option>
-    <option  v-for="item in items" :value="item.id" :key="item.id">{{ item.name }}</option>
+      <option value="" selected>Select Option</option>
+      <option v-for="item in items" :value="item.id" :key="item.id">{{ item.name }}</option>
     </select>
   </div>
 </template>
