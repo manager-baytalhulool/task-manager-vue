@@ -164,6 +164,9 @@ onMounted(async () => {
                 <template #cell-name="{ row: user }">
                   {{ user.name }}
                 </template>
+                <template #cell-role_id="{ row: user }">
+                  {{ user.role?.name ?? '-' }}
+                </template>
                 <template #cell-actions="{ row: user, rowIndex: index }">
                   <div class="d-flex gap-1">
                     <button @click="handleEditClick(user)" class="btn btn-info btn-sm">Edit</button>
