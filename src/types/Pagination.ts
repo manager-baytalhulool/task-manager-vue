@@ -14,6 +14,7 @@ export interface PaginationParams {
   search?: string
   assignee_id?: string
   status?: string
+  project_id?: string
 }
 
 export interface PaginationResponse<T> {

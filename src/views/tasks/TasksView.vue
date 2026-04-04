@@ -12,6 +12,7 @@ import { useDataTable } from '@/composables/useDataTable'
 import { useAuthStore } from '@/stores/authStore'
 import type { IColumn, PaginationParams } from '@/types/Pagination'
 import { TaskStatusEnum } from '@/enums/TaskStatusEnum'
+import vSelect from 'vue-select'
 
 const tasks = ref<TaskIndex[]>([])
 const users = ref<any[]>([])
@@ -26,6 +27,7 @@ const warningMessage = ref<string>('')
 const selectedTask = ref<TaskIndex | null>(null)
 const selectedAssigneeId = ref('')
 const selectedStatus = ref('')
+const selectedProject = ref<any>(null)
 
 // let selectedSeasonalPlanId: any = null;
 const columns: IColumn<TaskIndex>[] = [
@@ -94,7 +96,11 @@ const handleEditClick = (task: TaskIndex) => {
 }
 
 const handleFilterChange = () => {
-  updateParams({ assignee_id: selectedAssigneeId.value, status: selectedStatus.value })
+  updateParams({
+    assignee_id: selectedAssigneeId.value,
+    status: selectedStatus.value,
+    project_id: selectedProject.value?.id || '',
+  })
 }
 
 const handleSaveTask = async (payload: any) => {
@@ -192,6 +198,16 @@ onMounted(async () => {
                 {{ status }}
               </option>
             </select>
+            <v-select
+              class="d-inline-block w-auto me-2"
+              style="min-width: 200px"
+              v-model="selectedProject"
+              :options="projects"
+              label="name"
+              placeholder="All Projects"
+              :clearable="true"
+              @update:modelValue="handleFilterChange"
+            />
             <button class="btn btn-primary ms-1" @click="handleAddNewClick">Add new</button>
             <!-- <RouterLink to="/tasks/create">
             </RouterLink> -->
