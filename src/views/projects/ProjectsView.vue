@@ -22,6 +22,7 @@ let modalDelete: Modal | null = null
 const warningMessage = ref<string>('')
 
 const selectedProject = ref<ProjectIndex | null>(null)
+const selectedLiveStatus = ref('')
 
 const columns: IColumn<ProjectIndex>[] = [
   { label: '#', field: 'serial_number' },
@@ -60,6 +61,12 @@ const handleDelete = async () => {
   modalDelete!.hide()
 }
 
+const handleFilterChange = () => {
+  updateParams({
+    is_live: selectedLiveStatus.value,
+  })
+}
+
 const handleDeleteClick = (project: ProjectIndex, index: number) => {
   console.log(project, index)
   selectedProject.value = project
@@ -80,9 +87,10 @@ const handleEditClick = (project: ProjectIndex) => {
   // modalUserForm.show()
 }
 
-const { pagination, handlePageChange, handleSearchChange } = useDataTable<ProjectIndex>({
-  fetchFunction: getProjects,
-})
+const { pagination, handlePageChange, handleSearchChange, updateParams } =
+  useDataTable<ProjectIndex>({
+    fetchFunction: getProjects,
+  })
 
 onMounted(async () => {
   const modal = document.getElementById('modal-delete')
@@ -100,6 +108,15 @@ onMounted(async () => {
       <div class="row">
         <div class="col-12">
           <div class="mb-3 text-end">
+            <select
+              class="form-select d-inline-block w-auto me-2"
+              v-model="selectedLiveStatus"
+              @change="handleFilterChange"
+            >
+              <option value="">All</option>
+              <option value="1">Live</option>
+              <option value="0">Not Live</option>
+            </select>
             <RouterLink to="/projects/create">
               <button class="btn btn-primary ms-1">Add new</button>
             </RouterLink>

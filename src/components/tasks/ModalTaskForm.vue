@@ -89,7 +89,9 @@ async function handleSubmit() {
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-            <button type="submit" class="btn btn-primary">Create Task</button>
+            <button type="submit" class="btn btn-primary">
+              {{ selectedTask ? 'Update' : 'Create' }} Task
+            </button>
           </div>
         </form>
       </div>

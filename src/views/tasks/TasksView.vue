@@ -37,6 +37,7 @@ const columns: IColumn<TaskIndex>[] = [
   { label: 'Description', field: 'description', sortable: true },
   { label: 'Project', field: 'project_id', sortable: true },
   { label: 'Status', field: 'status', sortable: true },
+  { label: 'Created At', field: 'created_at', sortable: true },
   { label: 'Actions', field: 'actions' },
 ]
 
@@ -117,6 +118,8 @@ const handleSaveTask = async (payload: any) => {
     modalTaskForm!.hide()
   } catch (error) {
     console.error('Task save failed', error)
+  } finally {
+    reload()
   }
 }
 
@@ -156,9 +159,19 @@ const handleTaskStatusChange = async (
   }
 }
 
-const { pagination, handlePageChange, handleSearchChange, updateParams } = useDataTable<TaskIndex>({
-  fetchFunction: getTasks,
-})
+const formatDate = (dateString: string | null | undefined): string => {
+  if (!dateString) return '-'
+  const date = new Date(dateString)
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
+const { pagination, handlePageChange, handleSearchChange, updateParams, reload } =
+  useDataTable<TaskIndex>({
+    fetchFunction: getTasks,
+  })
 
 onMounted(async () => {
   fetchOptions()
@@ -237,6 +250,9 @@ onMounted(async () => {
                 </template>
                 <template #cell-project_id="{ row: task }">
                   {{ task.project.name }}
+                </template>
+                <template #cell-created_at="{ row: task }">
+                  {{ formatDate(task.created_at) }}
                 </template>
                 <!-- <template #cell-actions="{ row: task, rowIndex: index }">
                   <div class="d-flex gap-1">
