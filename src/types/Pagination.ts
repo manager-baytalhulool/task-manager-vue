@@ -15,6 +15,7 @@ export interface PaginationParams {
   assignee_id?: string
   status?: string
   project_id?: string
+  is_live?: string
 }
 
 export interface PaginationResponse<T> {
