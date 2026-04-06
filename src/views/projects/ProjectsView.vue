@@ -9,6 +9,7 @@ import AppDataTable from '@/components/AppDataTable.vue'
 import api from '@/plugins/axios'
 import type { ProjectIndex } from '@/types/Project'
 import { useDataTable } from '@/composables/useDataTable'
+import FormInputInline from '@/components/form/FormInputInline.vue'
 import { useRouter } from 'vue-router'
 import type { IColumn, PaginationParams } from '@/types/Pagination'
 // import { useDataTable } from '@/composables/useDataTable'
@@ -23,6 +24,11 @@ const warningMessage = ref<string>('')
 
 const selectedProject = ref<ProjectIndex | null>(null)
 const selectedLiveStatus = ref('')
+
+const formBody = ref({
+  start_date: '',
+  end_date: '',
+})
 
 const columns: IColumn<ProjectIndex>[] = [
   { label: '#', field: 'serial_number' },
@@ -39,7 +45,13 @@ const columns: IColumn<ProjectIndex>[] = [
 
 const getProjects = async (params: PaginationParams) => {
   const url = `/api/projects`
-  const response = await api.get(url, { params: params })
+  const response = await api.get(url, {
+    params: {
+      ...params,
+      start_date: formBody.value.start_date,
+      end_date: formBody.value.end_date,
+    },
+  })
 
   projects.value = response.data.data.projects.data
   return response.data.data.projects
@@ -65,6 +77,10 @@ const handleFilterChange = () => {
   updateParams({
     is_live: selectedLiveStatus.value,
   })
+}
+
+const handleSubmit = async () => {
+  handlePageChange(1)
 }
 
 const handleDeleteClick = (project: ProjectIndex, index: number) => {
@@ -122,6 +138,32 @@ onMounted(async () => {
             </RouterLink>
           </div>
 
+          <div class="card">
+            <div class="card-body">
+              <form
+                class="row row-cols-lg-auto g-3 align-items-center"
+                method="get"
+                @submit.prevent="handleSubmit"
+              >
+                <FormInputInline
+                  name="start_date"
+                  label="Start date"
+                  type="date"
+                  v-model="formBody.start_date"
+                />
+                <FormInputInline
+                  name="end_date"
+                  label="End date"
+                  type="date"
+                  v-model="formBody.end_date"
+                />
+
+                <div class="col-12">
+                  <button type="submit" class="btn btn-primary">Submit</button>
+                </div>
+              </form>
+            </div>
+          </div>
           <div class="card">
             <div class="card-header">
               <h5 class="card-title mb-0">Manage Projects</h5>

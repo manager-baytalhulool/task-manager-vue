@@ -13,6 +13,7 @@ import { useAuthStore } from '@/stores/authStore'
 import type { IColumn, PaginationParams } from '@/types/Pagination'
 import { TaskStatusEnum } from '@/enums/TaskStatusEnum'
 import vSelect from 'vue-select'
+import FormInputInline from '@/components/form/FormInputInline.vue'
 
 const tasks = ref<TaskIndex[]>([])
 const users = ref<any[]>([])
@@ -28,6 +29,10 @@ const selectedTask = ref<TaskIndex | null>(null)
 const selectedAssigneeId = ref('')
 const selectedStatus = ref('')
 const selectedProject = ref<any>(null)
+const formBody = ref({
+  start_date: '',
+  end_date: '',
+})
 
 // let selectedSeasonalPlanId: any = null;
 const columns: IColumn<TaskIndex>[] = [
@@ -51,7 +56,13 @@ const taskStatusActionsEnum = {
 
 const getTasks = async (params: PaginationParams) => {
   const url = `/api/tasks`
-  const response = await api.get(url, { params: params })
+  const response = await api.get(url, {
+    params: {
+      ...params,
+      start_date: formBody.value.start_date,
+      end_date: formBody.value.end_date,
+    },
+  })
   tasks.value = response.data.data.tasks.data
   return response.data.data.tasks
 }
@@ -102,6 +113,10 @@ const handleFilterChange = () => {
     status: selectedStatus.value,
     project_id: selectedProject.value?.id || '',
   })
+}
+
+const handleSubmit = async () => {
+  handlePageChange(1)
 }
 
 const handleSaveTask = async (payload: any) => {
@@ -224,6 +239,33 @@ onMounted(async () => {
             <button class="btn btn-primary ms-1" @click="handleAddNewClick">Add new</button>
             <!-- <RouterLink to="/tasks/create">
             </RouterLink> -->
+          </div>
+
+          <div class="card">
+            <div class="card-body">
+              <form
+                class="row row-cols-lg-auto g-3 align-items-center"
+                method="get"
+                @submit.prevent="handleSubmit"
+              >
+                <FormInputInline
+                  name="start_date"
+                  label="Start date"
+                  type="date"
+                  v-model="formBody.start_date"
+                />
+                <FormInputInline
+                  name="end_date"
+                  label="End date"
+                  type="date"
+                  v-model="formBody.end_date"
+                />
+
+                <div class="col-12">
+                  <button type="submit" class="btn btn-primary">Submit</button>
+                </div>
+              </form>
+            </div>
           </div>
 
           <div class="card">
